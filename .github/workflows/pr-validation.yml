@@ -1,0 +1,90 @@
+name: Code Quality & Security Checks
+
+on:
+  # Run on all pull requests to main
+  pull_request:
+    branches: [ main ]
+  
+  # Run on all pushes to main
+  push:
+    branches: [ main ]
+
+jobs:
+  validate-code:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install flake8 black pytest safety
+    
+    - name: Code linting (flake8)
+      run: |
+        # Stop if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.git,__pycache__,venv,env
+        # Check for complexity and style issues (warnings only)
+        flake8 . --count --max-complexity=15 --max-line-length=127 --statistics --exclude=.git,__pycache__,venv,env || true
+    
+    - name: Code formatting check (Black)
+      run: |
+        black --check --exclude='/(\.git|\.venv|venv|env|__pycache__)/' . || echo "::warning::Code formatting issues found. Run 'black .' to fix."
+    
+    - name: Check for large files (>10MB)
+      run: |
+        large_files=$(find . -type f -size +10M -not -path "./.git/*" -not -path "./venv/*" -not -path "./env/*")
+        if [ -n "$large_files" ]; then
+          echo "::error::Large files detected:"
+          echo "$large_files"
+          exit 1
+        fi
+    
+    - name: Security scan for sensitive data
+      run: |
+        # Check for API keys, passwords, tokens
+        if grep -r -i -E "(api[_-]?key|password|secret[_-]?key|access[_-]?token|private[_-]?key)\s*=\s*['\"][^'\"]+['\"]" \
+           --include="*.py" --include="*.yml" --include="*.yaml" --include="*.json" \
+           --exclude-dir=.git --exclude-dir=venv --exclude-dir=env .; then
+          echo "::error::Potential sensitive data found in code!"
+          exit 1
+        fi
+    
+    - name: Dependency security check
+      run: |
+        safety check --json || echo "::warning::Some dependencies may have known vulnerabilities"
+    
+    - name: Check for dangerous code patterns
+      run: |
+        dangerous=$(grep -r -E "(eval\(|exec\(|__import__\(|subprocess\.call\()" \
+          --include="*.py" --exclude-dir=.git --exclude-dir=venv --exclude-dir=env . || true)
+        if [ -n "$dangerous" ]; then
+          echo "::warning::Potentially dangerous code patterns found:"
+          echo "$dangerous"
+        fi
+    
+    - name: Verify required files exist
+      run: |
+        required_files=("requirements.txt" "README.md" "LICENSE")
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "::error::Required file missing: $file"
+            exit 1
+          fi
+        done
+    
+    - name: Run tests (if tests exist)
+      run: |
+        if [ -d "tests" ]; then
+          pytest tests/ --verbose || echo "::warning::Some tests failed"
+        else
+          echo "::warning::No tests directory found. Consider adding tests!"
+        fi

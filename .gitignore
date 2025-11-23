@@ -1,0 +1,73 @@
+# Ignore all data and results
+data/
+results/
+dump/
+plots/
+experiments/
+*.csv
+*.tsv
+*.xlsx
+*.h5
+*.pth
+*.pt
+*.ckpt
+*.log
+
+# Ignore images and annotation files
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.tif
+*.tiff
+*.gif
+*.zip
+
+# Ignore Python cache and environment files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Ignore VSCode settings
+.vscode/
+
+# Ignore Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Track notebooks with LFS
+!*.ipynb
+
+# Track source code and configs
+!src/
+!notebooks/
+!README.md
+!EXPERIMENTATION_PLAN.md
+!Test/*.jpg
+!Examples/**/*.png
+!Examples/**/*.jpg
+!Figure/*.jpg
+
+
+# Explicitly ignore specific notebooks
+Kaggle_Notebook/
+Kaggle_Notebook/
+TrainingeEval_copy.ipynb
+Kaggle_Final_Notebook.ipynb
+Starter.ipynb
+OUTPUT/
+TestingNotebook.ipynb
+PlotNeuralNet/
+model/
+MSc_Writting/
