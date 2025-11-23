@@ -1,5 +1,10 @@
-<center><h1>Multi-Task Transfer Learning and Application to Malaria Diagnosis</h1></center>
-<center><i>Master of Science Thesis, November 2025</i></center>
+<div align="center">
+
+# Multi-Task Transfer Learning and Application to Malaria Diagnosis
+
+*Master of Science Thesis, November 2025*
+
+</div>
 
 <div align="center">
 
@@ -20,6 +25,12 @@ The results show major improvements in robustness compared to traditional single
 
 ## What's Inside
 
+- [Multi-Task Transfer Learning and Application to Malaria Diagnosis](#multi-task-transfer-learning-and-application-to-malaria-diagnosis)
+  - [Overview](#overview)
+  - [What's Inside](#whats-inside)
+  - [System Architecture](#system-architecture)
+  - [Key Results](#key-results)
+  - [Qualitative Visualizations](#qualitative-visualizations)
 - [Getting Started](#getting-started)
   - [Directory Structure](#directory-structure)
   - [Environment Setup](#environment-setup)
