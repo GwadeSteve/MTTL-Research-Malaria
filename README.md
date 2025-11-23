@@ -42,8 +42,8 @@ The results show major improvements in robustness compared to traditional single
   - [Add New Tasks](#add-new-tasks)
   - [Use Different Backbones](#use-different-backbones)
   - [Optimize for Your Hardware](#optimize-for-your-hardware)
-  - [Citation](#citation)
-  - [Contact](#contact)
+- [Citation](#citation)
+- [Contact](#contact)
 
 ## System Architecture
 
@@ -333,7 +333,7 @@ device = torch.device('cpu')
 # Consider using smaller models or fewer epochs for prototyping
 ```
 
-## Citation
+# Citation
 
 If you use this code or find the research helpful, please star ⭐ the repo and cite:
 
@@ -349,7 +349,7 @@ If you use this code or find the research helpful, please star ⭐ the repo and 
 }
 ```
 
-## Contact
+# Contact
 
 **Gwade Steve**  
 *MSc Data Science and AI*  
