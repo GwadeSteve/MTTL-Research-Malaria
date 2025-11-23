@@ -27,7 +27,6 @@ seaborn==0.12.2
 plotly==5.15.0
 
 # Jupyter & Interactive
-ipython==8.14.0
 ipykernel==6.24.0
 jupyter==1.0.0
 notebook==6.5.4
