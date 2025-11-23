@@ -104,7 +104,7 @@ Using the WHO formula, I estimated parasitemia on the full test set by comparing
 
 The model produces four simultaneous outputs from a single input image. Here are some examples:
 
-**1. 3-Class Detection**
+**1. 3-Class Detection ( With focus on Infected cells )**
 
 <div align="center">
 <img src="Examples/Detection_Output.png" alt="Detection Output" width="700"/>
