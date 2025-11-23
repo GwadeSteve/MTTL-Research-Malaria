@@ -1,0 +1,156 @@
+\chapter{Multi-Task Transfer Learning Framework}
+\label{chap:framework}
+
+This chapter presents the theoretical contribution of this work, a mathematical framework for \acf{MTTL} built on foundational concepts from \textcite{pan2009survey}, \textcite{Caruana1997MTL}, and \textcite{Ruder2017OverviewMTL}, we first establish the necessary mathematical preliminaries. From there, we formulate Single-Task, Transfer, and Multi-Task Learning as distinct optimization problems. This leads to our proposed \ac{MTTL} formulation, which integrates pre-trained knowledge and parameter-efficient fine-tuning into a joint adaptation process across multiple related tasks.
+
+\section{Mathematical Preliminaries and Notation}
+\noindent A \textbf{domain} $\mathcal{D}$ is a tuple defining the feature space and its underlying data distribution:
+\begin{equation}
+	\mathcal{D} = \{\mathcal{X}, P(\mathbf{x})\}
+	\myequations{Domain Definition.}
+\end{equation}
+where $\mathcal{X}$ is the input feature space and $P(\mathbf{x})$ is the marginal probability distribution over $\mathcal{X}$.
+
+\noindent A \textbf{task} $\mathcal{T}$ defines a predictive objective within a domain:
+\begin{equation}
+	\mathcal{T} = \{\mathcal{Y}, f(\cdot)\}, \quad \text{where } f: \mathcal{X} \to \mathcal{Y}
+	\myequations{Task Definition.}
+\end{equation}
+where $\mathcal{Y}$ is the label space and $f(\cdot)$ is the true, unknown target function.
+
+\noindent A \textbf{model} is a parametric function $h(\mathbf{x}; \theta)$ with parameters $\theta \in \Theta$, designed to approximate $f(\cdot)$. For modern deep architectures, the model is a composition of a feature-extracting \textbf{backbone} $\phi(\cdot; \theta_\phi)$ and a task-specific \textbf{head} $g(\cdot; \theta_g)$:
+\begin{equation}
+	h(\mathbf{x}; \theta) = g(\phi(\mathbf{x}; \theta_\phi); \theta_g), \quad \text{where } \theta = \{\theta_\phi, \theta_g\}
+	\myequations{Model Decomposition.}
+\end{equation}
+
+\noindent Given a dataset $D = \{(\mathbf{x}_i, y_i)\}_{i=1}^N$ drawn from a joint distribution $P(\mathbf{x}, y)$, learning in a supervised setting is framed as finding the optimal parameters $\theta^*$ that minimize the \textbf{empirical risk} over a loss function $\mathcal{L}(\cdot, \cdot)$:
+\begin{equation}
+	\theta^{*} = \arg\min_{\theta \in \Theta} \frac{1}{N} \sum_{i=1}^N \mathcal{L}(h(\mathbf{x}_i; \theta), y_i)
+	\myequations{Empirical Risk Minimization.}
+	\label{eq:erm}
+\end{equation}
+
+\noindent
+Using the established notation, we now formally define the optimization objectives for STL, TL, MTL, and MTTL.\\
+
+\noindent In the standard \acf{STL} paradigm, a model with randomly initialized parameters $\theta = \{\theta_\phi, \theta_g\}$ is trained from scratch to learn a single task $\mathcal{T}$ using its corresponding dataset $D$. The objective is a direct application of Equation~\ref{eq:erm}:
+\begin{equation}
+	(\theta_\phi^*, \theta_g^*) = \arg\min_{\theta_\phi, \theta_g} \frac{1}{N} \sum_{i=1}^N \mathcal{L}(g(\phi(\mathbf{x}_i; \theta_\phi); \theta_g), y_i)
+	\myequations{STL Optimization Objective.}
+\end{equation}
+
+\noindent \acf{TL} uses knowledge acquired from a source task $\mathcal{T}_S = \{\mathcal{Y}_S, f_S(\cdot)\}$ on a source domain $\mathcal{D}_S = \{\mathcal{X}_S, P_S(\mathbf{x})\}$ to a target task $\mathcal{T}_T = \{\mathcal{Y}_T, f_T(\cdot)\}$ on a target domain $\mathcal{D}_T = \{\mathcal{X}_T, P_T(\mathbf{x})\}$. A pre-trained backbone $\phi(\cdot; \theta_\phi^*)$ from $\mathcal{T}_S$ is used. A new head $g_T(\cdot; \theta_{g_T})$ is trained for $\mathcal{T}_T$.
+\begin{equation}
+	\theta_T^* = \arg\min_{\theta_T} \frac{1}{N_T} \sum_{i=1}^{N_T} \mathcal{L}_T(g_T(\phi(\mathbf{x}_i; \theta_\phi^*); \theta_{g_T}), y_i)
+	\myequations{Transfer Learning Optimization Objective.}
+\end{equation}
+where $\theta_T = \{\theta_\phi^*, \theta_{g_T}\}$ and parameters $\theta_\phi^*$ may be frozen or fine-tuned.
+
+\noindent \acf{MTL} on the other hand trains a single model for multiple related tasks $\{\mathcal{T}_k = \{\mathcal{Y}_k, f_k(\cdot)\}\}_{k=1}^M$ on a shared domain $\mathcal{D} = \{\mathcal{X}, P(\mathbf{x})\}$. It employs a shared backbone $\phi(\cdot; \theta_\phi)$ and task-specific heads $\{g_k(\cdot; \theta_{g_k})\}_{k=1}^M$. The model $h(\mathbf{x}; \theta)$ outputs for all the tasks\\
+$\{g_1(\phi(\mathbf{x}; \theta_\phi); \theta_{g_1}), \dots, g_M(\phi(\mathbf{x}; \theta_\phi); \theta_{g_M})\}$.
+\begin{equation}
+	\theta^* = \arg\min_{\theta} \frac{1}{N} \sum_{i=1}^N \sum_{k=1}^M \alpha_k \mathcal{L}_k(g_k(\phi(\mathbf{x}_i; \theta_\phi); \theta_{g_k}), y_{i,k})
+	\myequations{Multi-task Learning Optimization Objective.}
+\end{equation}
+where $\theta = \{\theta_\phi, \{\theta_{g_k}\}_{k=1}^M\}$ and $\alpha_k$ are task weighting coefficients. All parameters in $\theta$ are typically trainable.
+
+\section{MTTL Definition and Typology}
+\label{sec:mttl_def}
+By combining the principles of Transfer Learning (TL) and Multi-Task Learning (MTL), we describe Multi-Task Transfer Learning (MTTL) as a unified strategy that combines the strengths of both. The idea is to use shared representations learned from pre-trained models and train multiple related tasks together. We define \ac{MTTL} as follows:
+
+\paragraph{Formal Definition:}
+\textbf{Multi-Task Transfer Learning (MTTL)} is a learning paradigm designed to solve a set of $M$ target tasks $\{\mathcal{T}_k\}_{k=1}^M$ by optimizing a joint objective function that is conditioned on the parameters $\theta_{\phi_S}^*$ of a backbone model pre-trained on a source task $\mathcal{T}_S$. A specific MTTL method is an instantiation of this paradigm, defined by its \textbf{Typology}, a selected \textbf{Fine-Tuning Strategy}, and a \textbf{Task-Balancing Strategy}.
+
+\paragraph{Typology}
+MTTL can be categorized along multiple axes, we propose a typology based on the flow of knowledge and tasks, which is particularly relevant to medical imaging:
+\begin{itemize}
+	\item \textbf{Source-to-Target Cardinality:} This describes the relationship between the number of source and target tasks. Common settings include \textit{One-to-Many} (e.g., ImageNet pre-training for multiple diagnostic tasks), \textit{Many-to-Many}, and \textit{Many-to-One}. Our framework is formulated in the \textit{One-to-Many} setting.
+	\item \textbf{Fine-Tuning Formulation:} This specifies how the pre-trained knowledge is utilized and adapted during the multi-task optimization phase. Key strategies, which will be formalized in Section~\ref{ssec:derivations_finetuning}, include Frozen Backbone, Full Fine-Tuning, and Parameter-Efficient Fine-Tuning (PEFT).
+\end{itemize}
+
+\section{The MTTL Problem Formulation}
+We formulate our MTTL problem in a \textit{One-to-Many} setting, where a single source task $\mathcal{T}_S$ provides a pre-trained backbone, which is then fine-tuned on $K$ target tasks $\{\mathcal{T}_k\}_{k=1}^K$.
+
+\paragraph{Stage 1: Source Representation Learning.}
+Let $h_S(\cdot; \theta_S) = g_S(\phi(\cdot; \theta_\phi); \theta_{g_S})$ be the source model. We obtain the optimal source backbone parameters $\theta_\phi^*$ by solving the standard STL problem on the source data:
+\begin{equation}
+	\theta_\phi^* = \left( \arg\min_{\theta_\phi, \theta_{g_S}} \hat{R}_S(\theta_\phi, \theta_{g_S}) \right)_{\theta_\phi}
+	\myequations{Source Backbone Parameter Extraction.}
+\end{equation}
+where $(\cdot)_{\theta_\phi}$ denotes projection onto the parameter space of the backbone.
+
+\paragraph{Stage 2: Target Multi-Task Optimization.}
+We transfer the backbone $\phi(\cdot; \theta_\phi^*)$ and attach $K$ new heads $\{g_k(\cdot; \theta_{g_k})\}$. The foundation of our framework is the following master objective function for the target stage:
+\begin{equation}
+	\min_{\Theta_{\text{train}}} \quad \mathcal{J}(\Theta_{\text{train}}, \{\lambda_k\}) = \sum_{k=1}^K \lambda_k \hat{R}_k(\Theta_{\text{train}}) + \Omega_{\text{reg}}(\Theta_{\text{train}})\\
+	\myequations{MTTL Master Objective Function.}
+	\label{eq:mttl_master_objective}
+\end{equation}
+
+\noindent
+Finally, to define a concrete learning problem or in other words to formalize the learning objective, we specify two key components the \textbf{Fine-Tuning Strategy} to determine the set of trainable parameters, regularization scope for the shared backbone ($\Theta_{\text{train}}, \Omega_{\text{reg}}$) and the \textbf{Task-Balancing Strategy} ($\{\lambda_k\}$), which controls the relative weighting of individual task losses.
+
+\subsection{Derivations by Fine-Tuning Strategy}
+\label{ssec:derivations_finetuning}
+The fine-tuning strategy defines the set of trainable parameters $\Theta_{\text{train}}$ and the regularization term $\Omega_{\text{reg}}$ in \eqref{eq:mttl_master_objective}. This choice specifies which parameters are updated and how they are constrained.
+
+\paragraph{Formulation 1: Frozen Backbone (Feature Extraction).}
+The backbone $\phi(\cdot; \theta_\phi^*)$ is used as a fixed feature extractor. The trainable parameters consist only of the new heads.
+\begin{align*}
+	\text{Let} \quad \Theta_{\text{train}} &:= \{\theta_{g_k}\}_{k=1}^M \quad \text{and} \quad \Omega_{\text{reg}} := 0 \\
+	\implies \mathcal{J} &= \sum_{k=1}^M \lambda_k \hat{R}_k(\theta_\phi^*, \theta_{g_k})
+\end{align*}
+
+\paragraph{Formulation 2: Full Fine-Tuning.}
+All layers of the pre-trained backbone are adapted. We define this as learning a dense update matrix $\Delta\theta_\phi$ for the initial backbone weights $\theta_\phi^*$.
+\begin{align*}
+	\text{Let} \quad \Theta_{\text{train}} &:= \{\Delta\theta_\phi, \{\theta_{g_k}\}_{k=1}^M\} \quad \text{and} \quad \Omega_{\text{reg}} := \gamma ||\Delta\theta_\phi||_2^2 \\
+	\implies \mathcal{J} &= \sum_{k=1}^M \lambda_k \hat{R}_k(\theta_\phi^* + \Delta\theta_\phi, \theta_{g_k}) + \gamma ||\Delta\theta_\phi||_2^2
+\end{align*}
+
+\paragraph{Formulation 3: Partial Fine-Tuning.}
+A subset of the backbone layers, typically the deeper, more task-specific ones, are unfrozen and fine-tuned. Let the backbone parameters be partitioned into a frozen set $\theta_{\phi, \text{frozen}}^*$ and a trainable set $\theta_{\phi, \text{tune}}^*$. We learn an update $\Delta\theta_{\phi, \text{tune}}$.
+\begin{align*}
+	\text{Let} \quad \Theta_{\text{train}} &:= \{\Delta\theta_{\phi, \text{tune}}, \{\theta_{g_k}\}_{k=1}^M\} \quad \text{and} \quad \Omega_{\text{reg}} := \gamma ||\Delta\theta_{\phi, \text{tune}}||_2^2 \\
+	\implies \mathcal{J} &= \sum_{k=1}^M \lambda_k \hat{R}_k(\{\theta_{\phi, \text{frozen}}^*, \theta_{\phi, \text{tune}}^* + \Delta\theta_{\phi, \text{tune}}\}, \theta_{g_k}) + \gamma ||\Delta\theta_{\phi, \text{tune}}||_2^2
+\end{align*}
+
+\paragraph{Formulation 4: Parameter-Efficient Fine-Tuning (PEFT).}
+This approach, exemplified by LoRA \parencite{Hu2021LoRA}, keeps the entire backbone $\theta_\phi^*$ frozen but injects a small set of new, trainable parameters $\theta_\psi$ (the adapters).
+\begin{align*}
+	\text{Let} \quad \Theta_{\text{train}} &:= \{\theta_\psi, \{\theta_{g_k}\}_{k=1}^M\} \quad \text{and} \quad \Omega_{\text{reg}} := 0 \\
+	\implies \mathcal{J} &= \sum_{k=1}^M \lambda_k \hat{R}_k(\phi_{\text{adapted}}(\cdot; \theta_\phi^*, \theta_\psi), \theta_{g_k})
+\end{align*}
+
+\paragraph{Formulation 5: Hybrid Tuning (Our Approach).}
+This strategy, central to our experimental investigation, combines Partial Fine-Tuning with PEFT. A subset of the backbone layers is fully fine-tuned while the remaining frozen layers are adapted using PEFT. 
+\begin{align*}
+	\text{Let} \quad \Theta_{\text{train}} &:= \{\Delta\theta_{\phi, \text{tune}}, \theta_\psi, \{\theta_{g_k}\}_{k=1}^M\} \quad \text{and} \quad \Omega_{\text{reg}} := \gamma ||\Delta\theta_{\phi, \text{tune}}||_2^2 \\
+	\implies \mathcal{J} &= \sum_{k=1}^M \lambda_k \hat{R}_k(\phi_{\text{adapted}}(\cdot; \{\theta_{\phi, \text{frozen}}^*, \theta_{\phi, \text{tune}}^* + \Delta\theta_{\phi, \text{tune}}\}, \theta_\psi), \theta_{g_k}) + \gamma ||\Delta\theta_{\phi, \text{tune}}||_2^2
+\end{align*}
+
+\noindent The choice of which backbone layers to unfreeze is critical. Based on established principles of transfer learning \parencite{yosinski2014transferable}, earlier layers of a CNN learn generic, low-level features (e.g., edges, textures), while later layers learn more abstract, task-specific features. To preserve the generic features while still tuning the high-level representations to our specific domain, we chose to unfreeze only the final residual block (\texttt{layer4}) of the ResNet-50 backbone. The remaining, earlier layers were kept frozen but were adapted using LoRA. This hybrid approach aims to achieve the best of both worlds deep feature adaptation with maximal parameter efficiency.
+
+\subsection{Derivations by Task-Balancing Strategy}
+\label{ssec:derivations_balancing}
+This component defines the task weights $\{\lambda_k\}$ and can be applied to any of the fine-tuning formulations above.
+
+\paragraph{Formulation A: Manual Weighting.}
+The weights are set as fixed hyperparameters, $\lambda_k = c_k$. A common constraint is to enforce a convex combination such that
+\[
+\lambda_k \ge 0 \quad \text{and} \quad \sum_{k=1}^M \lambda_k = 1
+\]
+
+\paragraph{Formulation B: Uncertainty Weighting.}
+This approach re-frames the objective based on maximizing a multi-task Gaussian likelihood, where each task's uncertainty $\sigma_k^2$ is a learnable parameter \parencite{Kendall2018MultiTaskLearningUncertainty}. This corresponds to setting $\lambda_k = (2\sigma_k^2)^{-1}$ and adding an uncertainty regularization term. The master objective becomes a joint minimization over model and uncertainty parameters:
+\begin{equation}
+	\min_{\Theta_{\text{train}}, \{\sigma_k\}} \quad \sum_{k=1}^M \left( \frac{1}{2\sigma_k^2} \hat{R}_k(\Theta_{\text{train}}) + \log \sigma_k \right) + \Omega_{\text{reg}}(\Theta_{\text{train}})
+	\myequations{MTTL Objective with Uncertainty Weighting.}
+\end{equation}
+
+\paragraph{Formulation C: Gradient Normalization (GradNorm).}
+This method \parencite{Chen2018GradNorm} dynamically tunes $\{\lambda_k(t)\}$ at each training step $t$ to equalize learning speeds across tasks. Let $\theta_{sh} \subseteq \Theta_{\text{train}}$ be the trainable shared parameters. The weights $\{\lambda_k\}$ are updated to minimize a gradient loss $\mathcal{L}_{\text{grad}}(t, \{\lambda_k\})$ that measures the disparity in gradient magnitudes relative to each task's training rate.
+
+
+

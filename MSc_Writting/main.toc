@@ -1,0 +1,109 @@
+\acswitchoff 
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{Declaration}{i}{chapter*.1}%
+\contentsline {chapter}{Acknowledgments}{ii}{chapter*.2}%
+\contentsline {chapter}{Abstract}{iii}{chapter*.3}%
+\contentsline {chapter}{Summary}{iv}{chapter*.4}%
+\contentsline {chapter}{List of Acronyms}{ix}{chapter*.5}%
+\contentsline {chapter}{List of Figures}{x}{chapter*.6}%
+\contentsline {chapter}{List of Tables}{xii}{chapter*.7}%
+\contentsline {chapter}{List of Equations}{xiii}{chapter*.8}%
+\contentsline {chapter}{Introduction}{1}{chapter*.9}%
+\contentsline {chapter}{\numberline {1}Theoretical Foundations and Literature Review}{5}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Deep Neural Networks as Composite Functions}{5}{section.1.1}%
+\contentsline {subsection}{\numberline {1.1.1}Hierarchical Representations}{6}{subsection.1.1.1}%
+\contentsline {subsection}{\numberline {1.1.2}Convolutional Neural Networks}{6}{subsection.1.1.2}%
+\contentsline {section}{\numberline {1.2}CNN Architecture Components}{7}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Limitations of Training CNNs from Scratch}{10}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Transfer Learning Paradigm}{11}{section.1.4}%
+\contentsline {subsection}{\numberline {1.4.1}Definition and Typology}{11}{subsection.1.4.1}%
+\contentsline {subsection}{\numberline {1.4.2}Common Transfer Learning Techniques in Deep Learning}{12}{subsection.1.4.2}%
+\contentsline {subsection}{\numberline {1.4.3}General Benefits and Limitations of Transfer Learning}{13}{subsection.1.4.3}%
+\contentsline {section}{\numberline {1.5}Multitask Learning Paradigm}{14}{section.1.5}%
+\contentsline {subsection}{\numberline {1.5.1}Definition and Formulation}{14}{subsection.1.5.1}%
+\contentsline {subsection}{\numberline {1.5.2}MTL Architectural Approaches}{15}{subsection.1.5.2}%
+\contentsline {subsection}{\numberline {1.5.3}Optimization Challenges}{15}{subsection.1.5.3}%
+\contentsline {subsection}{\numberline {1.5.4}General Benefits and Limitations of Multitask Learning}{16}{subsection.1.5.4}%
+\contentsline {section}{\numberline {1.6}Prior Work in Malaria Detection}{16}{section.1.6}%
+\contentsline {subsection}{\numberline {1.6.1}Advanced AI Paradigms for Malaria Detection}{16}{subsection.1.6.1}%
+\contentsline {subsection}{\numberline {1.6.2}Multitask and Multitask Transfer Learning Relevance}{19}{subsection.1.6.2}%
+\contentsline {subsection}{\numberline {1.6.3}Observed Gaps in the Literature}{20}{subsection.1.6.3}%
+\contentsline {chapter}{\numberline {2}Multi-Task Transfer Learning Framework}{21}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Mathematical Preliminaries and Notation}{21}{section.2.1}%
+\contentsline {section}{\numberline {2.2}MTTL Definition and Typology}{22}{section.2.2}%
+\contentsline {paragraph}{Formal Definition:}{22}{paragraph*.18}%
+\contentsline {paragraph}{Typology}{22}{paragraph*.19}%
+\contentsline {section}{\numberline {2.3}The MTTL Problem Formulation}{23}{section.2.3}%
+\contentsline {paragraph}{Stage 1: Source Representation Learning.}{23}{paragraph*.20}%
+\contentsline {paragraph}{Stage 2: Target Multi-Task Optimization.}{23}{paragraph*.21}%
+\contentsline {subsection}{\numberline {2.3.1}Derivations by Fine-Tuning Strategy}{23}{subsection.2.3.1}%
+\contentsline {paragraph}{Formulation 1: Frozen Backbone (Feature Extraction).}{24}{paragraph*.22}%
+\contentsline {paragraph}{Formulation 2: Full Fine-Tuning.}{24}{paragraph*.23}%
+\contentsline {paragraph}{Formulation 3: Partial Fine-Tuning.}{24}{paragraph*.24}%
+\contentsline {paragraph}{Formulation 4: Parameter-Efficient Fine-Tuning (PEFT).}{24}{paragraph*.25}%
+\contentsline {paragraph}{Formulation 5: Hybrid Tuning (Our Approach).}{24}{paragraph*.26}%
+\contentsline {subsection}{\numberline {2.3.2}Derivations by Task-Balancing Strategy}{25}{subsection.2.3.2}%
+\contentsline {paragraph}{Formulation A: Manual Weighting.}{25}{paragraph*.27}%
+\contentsline {paragraph}{Formulation B: Uncertainty Weighting.}{25}{paragraph*.28}%
+\contentsline {paragraph}{Formulation C: Gradient Normalization (GradNorm).}{25}{paragraph*.29}%
+\contentsline {chapter}{\numberline {3}Methodological Application to Malaria Diagnosis}{26}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Instantiated MTTL Objective for Malaria Diagnosis}{26}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Dataset}{27}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}Image Preprocessing Pipeline}{28}{subsection.3.1.2}%
+\contentsline {paragraph}{Contrast Enhancement (CLAHE).}{28}{paragraph*.31}%
+\contentsline {paragraph}{Resizing.}{28}{paragraph*.32}%
+\contentsline {paragraph}{Data Augmentation and Normalization.}{28}{paragraph*.33}%
+\contentsline {section}{\numberline {3.2}Tasks Formulation}{28}{section.3.2}%
+\contentsline {section}{\numberline {3.3}MTTL Model Architecture}{31}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Shared Backbone with Integrated LoRA Adapters}{33}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.3.2}Task-Specific Heads}{33}{subsection.3.3.2}%
+\contentsline {paragraph}{\acf {FPN}.}{33}{paragraph*.43}%
+\contentsline {paragraph}{Detection Head.}{33}{paragraph*.44}%
+\contentsline {paragraph}{RoI Classification Head.}{33}{paragraph*.45}%
+\contentsline {paragraph}{Segmentation Head.}{37}{paragraph*.46}%
+\contentsline {paragraph}{Infection Localization Head.}{37}{paragraph*.47}%
+\contentsline {section}{\numberline {3.4}Experimental Protocol}{37}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Phase 1: Establishing Optimal STL Baselines}{37}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}Phase 2: Evaluating Diagnostic Completeness and MTTL Synergy}{37}{subsection.3.4.2}%
+\contentsline {paragraph}{(1) Task Complexity.}{37}{paragraph*.48}%
+\contentsline {paragraph}{(2) MTTL Synergy.}{38}{paragraph*.49}%
+\contentsline {section}{\numberline {3.5}Evaluation Protocol and Metrics}{38}{section.3.5}%
+\contentsline {subsection}{\numberline {3.5.1}Diagnostic Test Datasets}{38}{subsection.3.5.1}%
+\contentsline {subsection}{\numberline {3.5.2}Task-Specific Performance Metrics}{38}{subsection.3.5.2}%
+\contentsline {paragraph}{Detection.}{38}{paragraph*.50}%
+\contentsline {paragraph}{RoI Classification.}{39}{paragraph*.51}%
+\contentsline {paragraph}{Segmentation.}{39}{paragraph*.52}%
+\contentsline {paragraph}{Infection Localization.}{39}{paragraph*.53}%
+\contentsline {section}{\numberline {3.6}Implementation Details and Experimental Setup}{39}{section.3.6}%
+\contentsline {subsection}{\numberline {3.6.1}Hardware and Software Environment}{39}{subsection.3.6.1}%
+\contentsline {subsection}{\numberline {3.6.2}Training Configuration}{40}{subsection.3.6.2}%
+\contentsline {chapter}{\numberline {4}Results and Discussion}{41}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Single-Task Learning Detection Baselines}{41}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Evaluating STL Baselines and Their Limitations}{42}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}STL Baseline Performance Across All Diagnostic Tasks}{42}{subsection.4.2.1}%
+\contentsline {subsection}{\numberline {4.2.2}Training Dynamics of STL Models}{42}{subsection.4.2.2}%
+\contentsline {subsection}{\numberline {4.2.3}STL Performance Under Increasing Complexity}{44}{subsection.4.2.3}%
+\contentsline {section}{\numberline {4.3}MTTL Performance and Synergy Analysis}{44}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Analysis of MTTL Synergy}{45}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.2}Training Dynamics for Top MTTL Models}{47}{subsection.4.3.2}%
+\contentsline {section}{\numberline {4.4}Final Model Evaluation and Robustness Analysis}{48}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}Detection Performance Leaderboard}{48}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}Diagnostic Robustness on Specialized Subsets}{48}{subsection.4.4.2}%
+\contentsline {subsection}{\numberline {4.4.3}Parasitemia Quantification on Multi-Class Detection Models}{49}{subsection.4.4.3}%
+\contentsline {chapter}{\numberline {5}Discussion}{51}{chapter.5}%
+\contentsline {section}{\numberline {5.1}The Specialist vs. The Generalist}{51}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Answering the Central Research Question}{51}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Implications of Key Findings}{52}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Limitations of the Study}{52}{section.5.4}%
+\contentsline {chapter}{\numberline {6}Conclusion}{54}{chapter.6}%
+\contentsline {chapter}{References}{56}{chapter*.75}%
+\contentsline {chapter}{\numberline {A}Experimental Configurations}{64}{appendix.A}%
+\contentsline {section}{\numberline {A.1}Training and Optimization Strategy}{64}{section.A.1}%
+\contentsline {section}{\numberline {A.2}Model Configurations}{64}{section.A.2}%
+\contentsline {chapter}{\numberline {B}Performance Leaderboards for All Tasks}{66}{appendix.B}%
+\contentsline {section}{\numberline {B.1}Detection Performance and Synergy}{66}{section.B.1}%
+\contentsline {section}{\numberline {B.2}Auxiliary Task Leaderboards}{67}{section.B.2}%
+\contentsline {chapter}{\numberline {C}Qualitative Examples}{69}{appendix.C}%
+\contentsline {section}{\numberline {C.1}Auxiliary Segmentation and Localization}{69}{section.C.1}%
+\contentsline {section}{\numberline {C.2}Auxiliary RoI Classification}{71}{section.C.2}%
+\contentsline {section}{\numberline {C.3}Detection Performance}{72}{section.C.3}%
