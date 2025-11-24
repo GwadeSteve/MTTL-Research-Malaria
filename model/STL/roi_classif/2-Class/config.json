@@ -1,0 +1,91 @@
+{
+    "seed": 12,
+    "backbone_arch": "resnet50",
+    "detection_head": "RCNN",
+    "num_classes_detection": 2,
+    "num_classes_classif": 2,
+    "num_classes_severity": 4,
+    "image_size": [
+        512,
+        512
+    ],
+    "adapter_config": {
+        "detection_rank": 16,
+        "detection_alpha": 32,
+        "detection_dropout": 0.1,
+        "segmentation_rank": 8,
+        "segmentation_alpha": 16,
+        "segmentation_dropout": 0.05,
+        "severity_rank": 8,
+        "severity_alpha": 16,
+        "severity_dropout": 0.05,
+        "cell_classif_rank": 8,
+        "cell_classif_alpha": 16,
+        "cell_classif_dropout": 0.05
+    },
+    "loss_config": {
+        "roi_classif": {
+            "loss_type": "cross_entropy",
+            "class_weights": [
+                23.0,
+                1.0
+            ]
+        },
+        "tasks": [
+            "roi_classif"
+        ],
+        "use_uncertainty": false,
+        "detection": {
+            "focal_alpha": 0.25,
+            "focal_gamma": 2.0,
+            "objectness_weight": 2.0,
+            "classification_weight": 1.0,
+            "bbox_weight": 1.0,
+            "hard_negative_ratio": 3.0,
+            "smooth_l1_beta": 0.1
+        },
+        "parasitemia": {
+            "loss_type": "clinical_huber",
+            "huber_delta": 0.1,
+            "range_penalty": 0.1,
+            "clinical_thresholds": [
+                0.0,
+                0.02,
+                0.1,
+                1.0
+            ],
+            "threshold_weights": [
+                1.0,
+                2.0,
+                1.5,
+                1.0
+            ]
+        },
+        "heatmap": {
+            "focal_alpha": 0.8,
+            "focal_gamma": 3.0,
+            "dice_weight": 0.4,
+            "focal_weight": 0.4,
+            "boundary_weight": 0.2,
+            "dice_smooth": 1e-06
+        }
+    },
+    "backbone_unfreeze_layers": {
+        "layer4": "all"
+    },
+    "mode": "STL",
+    "active_tasks": [
+        "roi_classif"
+    ],
+    "strategy": "STL_ROI_2cls_Hybrid_WithSampler",
+    "notes": "2-class (Inf, H) classif with Hybrid tuning and a sampler.",
+    "use_sampler": true,
+    "use_amp": true,
+    "batch_size": 16,
+    "num_epochs": 150,
+    "warmup_epochs": 12,
+    "patience": 20,
+    "learning_rate": 0.001,
+    "backbone_learning_rate": 1e-06,
+    "weight_decay": 0.0001
+}

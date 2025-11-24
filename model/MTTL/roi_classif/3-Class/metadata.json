@@ -1,0 +1,15 @@
+{
+    "uuid": "a08eafb1-b813-46fb-a5e9-c44d75c667c8",
+    "run_id": 1,
+    "run_name": "run_1_MTTL_Det(3cls)+ROI_NoSampler",
+    "timestamp_start": "2025-09-19T15:38:31.646126",
+    "mode": "MTTL",
+    "tasks": [
+        "detection",
+        "roi_classif"
+    ],
+    "strategy": "MTTL_Det(3cls)+ROI_NoSampler",
+    "status": "completed",
+    "notes": "3-Cls Det + ROI Classifier without sampler.",
+    "timestamp_end": "2025-11-15T18:16:22.414319"
+}

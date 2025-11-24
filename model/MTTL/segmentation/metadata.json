@@ -1,0 +1,15 @@
+{
+    "uuid": "7eeadc4e-e67f-4f05-90bf-71fb63cc40dc",
+    "run_id": 3,
+    "run_name": "run_3_MTTL_Det(2cls)+Seg_Sampler",
+    "timestamp_start": "2025-09-19T01:05:15.666880",
+    "mode": "MTTL",
+    "tasks": [
+        "detection",
+        "segmentation"
+    ],
+    "strategy": "MTTL_Det(2cls)+Seg_Sampler",
+    "status": "completed",
+    "notes": "2-Cls Det + Seg without sampler.",
+    "timestamp_end": "2025-11-15T19:20:42.225636"
+}

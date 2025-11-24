@@ -1,0 +1,25 @@
+{
+    "backbone": {
+        "total": 24474688,
+        "trainable": 15931392,
+        "trainable_core": 14964736,
+        "trainable_adapters": 966656
+    },
+    "task_heads": {
+        "detection_head": {
+            "total": 1012776,
+            "trainable": 1012776
+        },
+        "roi_classif_head": {
+            "total": 0,
+            "trainable": 0
+        }
+    },
+    "loss_function": {
+        "total": 2,
+        "trainable": 2
+    },
+    "total_parameters": 26664812,
+    "total_trainable": 18121516,
+    "trainable_percentage": "67.96%"
+}

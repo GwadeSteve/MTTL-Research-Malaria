@@ -1,0 +1,118 @@
+{
+    "seed": 12,
+    "backbone_arch": "resnet50",
+    "detection_head": "RCNN",
+    "num_classes_detection": 3,
+    "num_classes_classif": 3,
+    "num_classes_severity": 4,
+    "image_size": [
+        512,
+        512
+    ],
+    "adapter_config": {
+        "detection_rank": 16,
+        "detection_alpha": 32,
+        "detection_dropout": 0.1,
+        "segmentation_rank": 8,
+        "segmentation_alpha": 16,
+        "segmentation_dropout": 0.05,
+        "severity_rank": 8,
+        "severity_alpha": 16,
+        "severity_dropout": 0.05,
+        "cell_classif_rank": 8,
+        "cell_classif_alpha": 16,
+        "cell_classif_dropout": 0.05
+    },
+    "loss_config": {
+        "init_log_vars": {
+            "detection": -2.5,
+            "segmentation": -1.0,
+            "severity": -1.0,
+            "cell_classif": -1.0,
+            "roi_classif": -1.0,
+            "heatmap": -1.0
+        },
+        "use_uncertainty": false,
+        "detection": {
+            "focal_alpha": 0.25,
+            "focal_gamma": 2.0,
+            "objectness_weight": 2.0,
+            "classification_weight": 1.5,
+            "bbox_weight": 1.0,
+            "hard_negative_ratio": 3.0,
+            "smooth_l1_beta": 0.1
+        },
+        "segmentation": {
+            "bce_weight": 0.5,
+            "dice_weight": 0.5,
+            "dice_smooth": 1e-06
+        },
+        "severity": {
+            "loss_type": "ce",
+            "class_weights": [
+                0.87,
+                1.02,
+                0.85,
+                1.45
+            ]
+        },
+        "cell_classif": {
+            "loss_type": "cross_entropy",
+            "class_weights": [
+                23,
+                1,
+                100
+            ]
+        },
+        "roi_classif": {
+            "loss_type": "cross_entropy",
+            "class_weights": [
+                23,
+                1,
+                100
+            ]
+        },
+        "heatmap": {
+            "dice_weight": 0.5,
+            "focal_weight": 0.4,
+            "boundary_weight": 0.1,
+            "focal_alpha": 0.75,
+            "focal_gamma": 2.0,
+            "dice_smooth": 1e-06
+        },
+        "tasks": [
+            "roi_classif"
+        ],
+        "parasitemia": {
+            "loss_type": "clinical_huber",
+            "huber_delta": 0.1,
+            "range_penalty": 0.1,
+            "clinical_thresholds": [
+                0.0,
+                0.02,
+                0.1,
+                1.0
+            ],
+            "threshold_weights": [
+                1.0,
+                2.0,
+                1.5,
+                1.0
+            ]
+        }
+    },
+    "backbone_unfreeze_layers": null,
+    "mode": "STL",
+    "active_tasks": [
+        "roi_classif"
+    ],
+    "strategy": "STL_ROI_3cls_LoRA_NoSampler",
+    "notes": "3-class (Inf, H, WBC) classif with LoRA-Only tuning and no sampler.",
+    "use_sampler": false,
+    "batch_size": 16,
+    "num_epochs": 200,
+    "warmup_epochs": 20,
+    "patience": 25,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001
+}

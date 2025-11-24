@@ -1,0 +1,15 @@
+{
+    "uuid": "449739bc-49a4-4275-b2b1-73bbfe56e172",
+    "run_id": 1,
+    "run_name": "run_1_MTTL_Det(3cls)+Heatmap_NoSampler",
+    "timestamp_start": "2025-09-19T19:38:21.961208",
+    "mode": "MTTL",
+    "tasks": [
+        "detection",
+        "heatmap"
+    ],
+    "strategy": "MTTL_Det(3cls)+Heatmap_NoSampler",
+    "status": "completed",
+    "notes": "3-Cls Det + Heatmap without sampler.",
+    "timestamp_end": "2025-11-15T18:08:27.476015"
+}

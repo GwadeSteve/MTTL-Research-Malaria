@@ -1,0 +1,14 @@
+{
+    "uuid": "2ab11dfb-a267-438d-96b7-684ed19b54f9",
+    "run_id": 3,
+    "run_name": "run_3_STL_Det_1cls_Hybrid_WithNoSampler",
+    "timestamp_start": "2025-09-20T10:39:46.885612",
+    "mode": "STL",
+    "tasks": [
+        "detection"
+    ],
+    "strategy": "STL_Det_1cls_Hybrid_WithNoSampler",
+    "status": "completed",
+    "notes": "1-class detection with Hybrid tuning and a sampler. The 'Monster' contender.",
+    "timestamp_end": "2025-11-15T17:07:45.809716"
+}

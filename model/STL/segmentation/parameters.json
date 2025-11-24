@@ -1,0 +1,21 @@
+{
+    "backbone": {
+        "total": 23749696,
+        "trainable": 15206400,
+        "trainable_core": 14964736,
+        "trainable_adapters": 241664
+    },
+    "task_heads": {
+        "segmentation_head": {
+            "total": 647217,
+            "trainable": 647217
+        }
+    },
+    "loss_function": {
+        "total": 0,
+        "trainable": 0
+    },
+    "total_parameters": 24396913,
+    "total_trainable": 15853617,
+    "trainable_percentage": "64.98%"
+}

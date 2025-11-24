@@ -1,0 +1,14 @@
+{
+    "uuid": "7078d303-cf22-42bb-821a-881a1505ca7c",
+    "run_id": 2,
+    "run_name": "run_2_SEG_S2_Hybrid_LR-High_BBLR-Stable",
+    "timestamp_start": "2025-09-22T02:06:19.501351",
+    "mode": "STL",
+    "tasks": [
+        "segmentation"
+    ],
+    "strategy": "SEG_S2_Hybrid_LR-High_BBLR-Stable",
+    "status": "completed",
+    "notes": "Hybrid tuning for segmentation.",
+    "timestamp_end": "2025-11-15T16:12:05.515547"
+}
