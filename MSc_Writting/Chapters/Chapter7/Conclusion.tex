@@ -1,0 +1,38 @@
+\chapter{Conclusion}
+%\addcontentsline{toc}{chapter}{Conclusion}
+\label{chap:conclusion}
+
+This work investigated Multi-Task Transfer Learning (MTTL) as a solution for automated malaria diagnosis. We compared this approach against Single-Task Learning (STL) to determine if learning related tasks simultaneously could improve diagnostic reliability. Our findings provide clear evidence that MTTL, when combined with parameter-efficient fine-tuning, offers a robust and scalable framework for medical image analysis. This chapter summarizes our contributions, the principal findings, and the implications for future research.
+
+\section*{Summary of Contributions}
+
+The primary contribution of this work is the formulation and validation of a multi-task transfer learning framework specifically designed for malaria detection. The key contributions are:
+
+\begin{itemize}
+	\item \textbf{A Mathematical Framework for MTTL:} We proposed a formal mathematical definition for MTTL that explicitly handles task interactions, loss aggregation, and regularization. This provides a reproducible basis for future research and ensures that performance gains are analytically interpretable.
+	\item \textbf{System Design and Hybrid Tuning:} We designed a modular architecture that integrates detection, segmentation, and region-of-interest classification. By combining Low-Rank Adaptation (LoRA) with selective fine-tuning of deep layers, we introduced a computationally efficient strategy to adapt large pre-trained models without the cost of full retraining.
+	\item \textbf{Empirical Validation of Task Synergy:} Through rigorous experimentation, we identified which auxiliary tasks provide beneficial inductive biases. We demonstrated that RoI Classification and Segmentation significantly enhance feature learning, while also highlighting cases where negative transfer can occur, such as with heatmap localization in certain configurations.
+\end{itemize}
+
+\section*{Principal Findings}
+
+Our experiments yielded several critical insights into the behavior of deep learning models in diagnostic settings:
+
+\begin{itemize}
+	\item \textbf{MTTL Outperforms STL in Realistic Scenarios:} STL models proved to be excellent specialists but poor generalists. While the 1-Class STL detector achieved a high F1-score of $0.8182$ on simple tasks, it collapsed when faced with the realistic complexity of multi-class detection. In contrast, MTTL models maintained robust performance, achieving a superior balance of sensitivity and specificity even as the diagnostic difficulty increased.
+	\item \textbf{Auxiliary Tasks act as Regularizers:} The addition of specific auxiliary tasks improved generalization. RoI Classification emerged as the most effective, delivering a relative gain of over 103\% in the 3-class F1-score. Segmentation also provided strong structural cues, yielding a 90\% improvement. However, these benefits are not automatic; in simple 1-class settings, auxiliary tasks sometimes reduced performance, indicating that task selection must match the problem complexity.
+	\item \textbf{Clinical Relevance:} The improved stability of the MTTL models translated directly into better clinical metrics. For parasitemia quantification, the 3-Class MTTL model reduced the mean absolute error from $3.30\%$ (STL) to $1.08\%$. This 67\% reduction in estimation error demonstrates that the theoretical advantages of our framework lead to tangible improvements in diagnostic utility.
+\end{itemize}
+
+\section*{Future Directions}
+
+This work establishes a foundation for several avenues of future research:
+
+\begin{itemize}
+	\item \textbf{Domain Expansion:} The MTTL framework is not limited to malaria. With careful task selection, it could be adapted to other pathologies, medical imaging domains and even other domains.
+	\item \textbf{Data Diversity and Generalization:} To confirm true clinical robustness, future work must validate these models on multi-center datasets. This includes testing on different malaria species, such as \textit{P. vivax}, varied staining protocols, and thick blood smears.
+	\item \textbf{Advanced Multi-Task Architectures:} While our shared backbone approach proved effective, exploring advanced architectures like cross-stitch networks or gradient surgery could help mitigate the negative transfer observed with conflicting tasks.
+	\item \textbf{Clinical Deployment:} Beyond algorithmic improvements, the next logical step is to evaluate this system in a real-world workflow. Assessing its impact in low-resource settings, where expert microscopists are scarce, would be the ultimate test of its value.
+\end{itemize}
+
+\noindent In conclusion, this study demonstrates that Multi-Task Transfer Learning is a powerful paradigm for automated malaria diagnosis. By learning to perform complementary tasks simultaneously, the model develops richer representations that are more accurate, robust, and clinically useful than those learned in isolation. This work offers a clear path toward scalable, reliable AI systems capable of supporting global health initiatives.

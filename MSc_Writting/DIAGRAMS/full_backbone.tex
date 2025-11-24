@@ -1,0 +1,80 @@
+\begin{tikzpicture}[
+	node distance=1.5cm and 0.7cm,
+	every node/.style={font=\scriptsize\sffamily},
+	dimlabel/.style={below, font=\tiny\ttfamily\bfseries, text=black!80, yshift=-4mm},
+	backbone_block/.style={rectangle, draw=blue!50!black, thick, fill=blue!6, rounded corners, minimum width=2.4cm, minimum height=0.95cm, align=center},
+	lora_block/.style={rectangle, draw=orange!60!black, thick, fill=orange!22, rounded corners, minimum width=2.8cm, minimum height=1.3cm},
+	stem_block/.style={rectangle, draw=purple!40!black, thick, fill=purple!12, rounded corners, minimum width=2.4cm, minimum height=0.95cm, align=center},
+	trainable_block/.style={rectangle, draw=purple!90!black, thick, fill=purple!20, rounded corners, minimum width=2.4cm, minimum height=0.95cm, align=center},
+	arrow/.style={-Stealth, thick, draw=black!80}
+	]
+	
+	% --- INPUT ---
+	\node[draw, thick, minimum width=1.6cm, minimum height=1.6cm] (input) 
+	{\includegraphics[width=1.5cm]{DIAGRAMS/input.png}};
+	\node[dimlabel] at (input.south) {512x512x3};
+	
+	% --- STEM ---
+	\node[stem_block, right=of input] (stem) {Stem};
+	\node[dimlabel] at (stem.south) {128x128x64};
+	
+	% --- STAGE 1 (LoRA wrapping Stage) ---
+	\node[lora_block, right=of stem] (l1) {};
+	\node[backbone_block, at=(l1)] (s1) {Stage 1};
+	\node[dimlabel] at (l1.south) {128x128x256};
+	
+	% --- STAGE 2 (LoRA wrapping Stage) ---
+	\node[lora_block, right=of l1] (l2) {};
+	\node[backbone_block, at=(l2)] (s2) {Stage 2};
+	\node[dimlabel] at (l2.south) {64x64x512};
+	
+	% --- STAGE 3 (LoRA wrapping Stage) ---
+	\node[lora_block, right=of l2] (l3) {};
+	\node[backbone_block, at=(l3)] (s3) {Stage 3};
+	\node[dimlabel] at (l3.south) {32x32x1024};
+	
+	% --- STAGE 4 (LoRA wrapping Stage) ---
+	\node[lora_block, right=of l3] (l4) {};
+	\node[trainable_block, at=(l4)] (s4) {Stage 4};
+	\node[dimlabel] at (l4.south) {16x16x2048};
+	
+	% --- GLOBAL FEATURE VECTOR ---
+	\node[circle, draw, thick, fill=gray!10, below=1.4cm of l4] (gap) {GAP};
+	\node[rectangle, draw, thick, fill=green!10, rounded corners,
+	minimum height=1.6cm, minimum width=0.3cm, below=0.8cm of gap] (vector) {};
+	\node[below=0.2cm of vector] {\scriptsize 2048-D};
+	\node[left=0.6cm of vector] (out_global) {\textbf{Global Vector}};
+	
+	% --- MULTI-SCALE OUTPUTS ---
+	\node[above=1.2cm of l1] (out_c1) {\textbf{C1}};
+	\node[above=1.2cm of l2] (out_c2) {\textbf{C2}};
+	\node[above=1.2cm of l3] (out_c3) {\textbf{C3}};
+	\node[above=1.2cm of l4] (out_c4) {\textbf{C4}};
+	\node[above=0.25cm of out_c1] {\tiny 128x128x256};
+	\node[above=0.25cm of out_c2] {\tiny 64x64x512};
+	\node[above=0.25cm of out_c3] {\tiny 32x32x1024};
+	\node[above=0.25cm of out_c4] {\tiny 16x16x2048};
+	
+	% --- ARROWS (main flow) ---
+	\draw[arrow] (input) -- (stem);
+	\draw[arrow] (stem) -- (l1);
+	\draw[arrow] (l1) -- (l2);
+	\draw[arrow] (l2) -- (l3);
+	\draw[arrow] (l3) -- (l4);
+	\draw[arrow] (l4) -- (gap);
+	\draw[arrow] (gap) -- (vector);
+	\draw[arrow] (vector.west) -- (out_global.east);
+	
+	% --- ARROWS (multi-scale outputs) ---
+	\draw[arrow] (l1.north) -- (out_c1.south);
+	\draw[arrow] (l2.north) -- (out_c2.south);
+	\draw[arrow] (l3.north) -- (out_c3.south);
+	\draw[arrow] (l4.north) -- (out_c4.south);
+	
+	% --- BACKGROUND PATH (Blue frozen backbone path) ---
+	\begin{scope}[on background layer]
+		\node[draw=blue!50, fill=blue!5, rounded corners, inner sep=8pt,
+		fit=(stem) (l1) (l2) (l3) (l4)] {};
+	\end{scope}
+	
+\end{tikzpicture}
