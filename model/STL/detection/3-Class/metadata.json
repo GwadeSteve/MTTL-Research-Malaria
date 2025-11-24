@@ -1,0 +1,14 @@
+{
+    "uuid": "c7637919-7909-4555-9584-4134b9b20cb3",
+    "run_id": 9,
+    "run_name": "run_9_STL_Det_3cls_Hybrid_WithSampler",
+    "timestamp_start": "2025-09-22T04:40:49.790845",
+    "mode": "STL",
+    "tasks": [
+        "detection"
+    ],
+    "strategy": "STL_Det_3cls_Hybrid_WithSampler",
+    "status": "completed",
+    "notes": "3-class (Inf, H, WBC) detection with Hybrid tuning and a sampler.",
+    "timestamp_end": "2025-11-15T15:57:38.787548"
+}

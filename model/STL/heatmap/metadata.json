@@ -1,0 +1,14 @@
+{
+    "uuid": "21b283a2-c891-43ac-99f3-297262f89ca1",
+    "run_id": 1,
+    "run_name": "run_1_HEATMAP_S2_Hybrid_Sampler",
+    "timestamp_start": "2025-09-22T00:56:04.360794",
+    "mode": "STL",
+    "tasks": [
+        "heatmap"
+    ],
+    "strategy": "HEATMAP_S2_Hybrid_Sampler",
+    "status": "completed",
+    "notes": "Hybrid tuning SOTA contender for the infection heatmap task.",
+    "timestamp_end": "2025-11-15T16:19:24.520377"
+}

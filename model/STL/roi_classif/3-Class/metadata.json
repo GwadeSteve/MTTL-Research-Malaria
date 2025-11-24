@@ -1,0 +1,14 @@
+{
+    "uuid": "af79803e-0156-482c-8fc4-961f75da7ae9",
+    "run_id": 2,
+    "run_name": "run_2_STL_ROI_3cls_LoRA_NoSampler",
+    "timestamp_start": "2025-09-18T20:13:52.462041",
+    "mode": "STL",
+    "tasks": [
+        "roi_classif"
+    ],
+    "strategy": "STL_ROI_3cls_LoRA_NoSampler",
+    "status": "completed",
+    "notes": "3-class (Inf, H, WBC) classif with LoRA-Only tuning and no sampler.",
+    "timestamp_end": "2025-11-15T19:43:27.686574"
+}

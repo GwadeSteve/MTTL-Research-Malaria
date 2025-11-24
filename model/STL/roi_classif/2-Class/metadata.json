@@ -1,0 +1,14 @@
+{
+    "uuid": "2751ccf2-ca81-4912-b706-1e0b2acd0fec",
+    "run_id": 5,
+    "run_name": "run_5_STL_ROI_2cls_Hybrid_WithSampler",
+    "timestamp_start": "2025-09-28T11:30:57.482526",
+    "mode": "STL",
+    "tasks": [
+        "roi_classif"
+    ],
+    "strategy": "STL_ROI_2cls_Hybrid_WithSampler",
+    "status": "completed",
+    "notes": "2-class (Inf, H) classif with Hybrid tuning and a sampler.",
+    "timestamp_end": "2025-11-15T15:26:51.563329"
+}

@@ -1,0 +1,14 @@
+{
+    "uuid": "40054faa-51cd-4ec2-9606-ad4af759d37c",
+    "run_id": 4,
+    "run_name": "run_4_STL_Det_2cls_Hybrid_WithSampler",
+    "timestamp_start": "2025-09-20T11:24:52.897379",
+    "mode": "STL",
+    "tasks": [
+        "detection"
+    ],
+    "strategy": "STL_Det_2cls_Hybrid_WithSampler",
+    "status": "completed",
+    "notes": "2-class (Inf, H) detection with Hybrid tuning and a sampler.",
+    "timestamp_end": "2025-11-15T16:54:54.740059"
+}

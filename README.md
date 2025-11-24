@@ -132,6 +132,7 @@ The model produces four simultaneous outputs from a single input image. Here are
 ├── models/                 # Saved model checkpoints (STL and MTTL)
 ├── Examples/               # Example outputs from models
 ├── Figure/                 # Architecture diagram
+├── Test/                   # Contains a sample from Lacuna Dataset for quick inference tests
 ├── notebooks/              # Experimental notebooks
 │   ├── Phase1_Exploration.ipynb
 │   ├── Phase2_Preprocessing.ipynb

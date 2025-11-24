@@ -69,5 +69,5 @@ Starter.ipynb
 OUTPUT/
 TestingNotebook.ipynb
 PlotNeuralNet/
-model/
+#model/
 LaTeX_Code/
