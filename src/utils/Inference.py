@@ -25,6 +25,7 @@ from tqdm import tqdm
 try:
     from model import create_model_for_task, create_multitask_model
     from DataUtils import MalariaPreprocessor
+    from download_weights import download_models
 except ImportError as e:
     print(f"Error importing custom modules: {e}")
     sys.exit(1)
@@ -635,6 +636,14 @@ def main():
     )
     
     args = parser.parse_args()
+    
+    models_path = Path(args.models_dir)
+    if not models_path.exists() or not any(models_path.iterdir()):
+        print(f"\nModel directory '{models_path}' is missing or empty.")
+        success = download_models(interactive=True) 
+        if not success:
+            print("Cannot proceed without model weights.")
+            sys.exit(1)
     
     # Create engine
     engine = InferenceEngine(

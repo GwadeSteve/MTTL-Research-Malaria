@@ -19,9 +19,9 @@
 
 ## Overview
 
-This repository contains the complete implementation and experiments for my Master's thesis on Multi-Task Transfer Learning (MTTL) applied to malaria detection. The framework combines Transfer Learning, Multi-Task Learning, and Parameter-Efficient Fine-Tuning to train a unified model that handles 4 malaria diagnostic tasks simultaneously: multi-class cell detection, binary cell segmentation, infection heatmap generation, and cell classification.
+This repository contains the complete implementation and experiments for my Master's thesis on Multi-Task Transfer Learning (MTTL) applied to malaria detection. The framework combines Transfer Learning, Multi-Task Learning, and Parameter-Efficient Fine-Tuning to train a unified model that can handle 4 malaria diagnostic tasks simultaneously: multi-class cell detection, binary cell segmentation, infection heatmap generation, and cell classification.
 
-The results show major improvements in robustness compared to traditional single-task approaches, especially when dealing with the challenging task of detecting minority infected cells in complex detection setting (2+ classes).
+The results show major improvements in robustness compared to traditional single-task approaches and even state-of-the-art object detectors like **YOLOv8** (Nano and Small). By using auxiliary tasks as regularizers, the MTTL framework outperformed an established SOTA YOLOv8-Small by 34% in F1-score for the critical minority class (infected cells) and reduced parasitemia estimation error by over 70%, highlighting the necessity of multi-task learning for reliable medical diagnosis.
 
 ## What's Inside
 
@@ -36,6 +36,7 @@ The results show major improvements in robustness compared to traditional single
   - [Environment Setup](#environment-setup)
   - [Dataset Download](#dataset-download)
   - [Preprocessing](#preprocessing)
+  - [Model Weights Download](#model-weights-download)
   - [Training and Evaluation](#training-and-evaluation)
   - [Inference](#inference)
 - [Extending the Framework](#extending-the-framework)
@@ -47,7 +48,7 @@ The results show major improvements in robustness compared to traditional single
 
 ## System Architecture
 
-The system uses a **Hard Parameter Sharing** architecture built for efficiency and feature reuse across tasks.
+The system uses a **Hard Parameter Sharing** architecture design, built for efficiency and feature reuse across tasks.
 
 **How it works:**
 
@@ -68,37 +69,39 @@ For detailed diagrams of task-specific heads (Detection's custom Faster R-CNN, S
 
 ## Key Results
 
-I benchmarked the MTTL framework against optimized Single-Task Learning (STL) baselines across three complexity levels.
+I benchmarked the MTTL framework against optimized Single-Task Learning (STL) baselines and industry-standard **YOLOv8** models (Nano and Small) on the complex 3-class detection task (Infected vs. Healthy vs. WBC).
 
-**Detection Performance**
+**Detection Performance (3-Class Complexity)**
 
-STL works well in simple infected-class detection settings but falls apart as class complexity increases. MTTL uses auxiliary tasks to keep high sensitivity for the minority 'Infected' class.
+While STL falls apart as class complexity increases, and YOLOv8 prioritizes the majority class, MTTL uses auxiliary tasks to maintain high sensitivity for the minority 'Infected' class.
 
 <div align="center">
 
-| Configuration | Classes | Paradigm | mAP@50 | F1 (Infected) |
-|:---|:---|:---|:---|:---|
-| **Det(1)** | 1 | STL | **0.8260** | **0.8182** |
-| Det(1) + Seg | 1 | MTTL | 0.7885 | 0.7654 |
-| Det(2) | 2 | STL | 0.5834 | 0.5990 |
-| **Det(2) + RoI** | 2 | MTTL | **0.6452** | **0.7810** |
-| Det(3) | 3 | STL | 0.3341 | 0.3791 |
-| **Det(3) + RoI** | 3 | MTTL | **0.7402** | **0.7710** |
+| Configuration | Architecture | mAP@50 | F1 (Infected) |
+|:---|:---|:---|:---|
+| Det(3) STL | ResNet-50 | 0.3341 | 0.3791 |
+| YOLOv8-Nano | CSPDarknet | 0.5871 | 0.5825 |
+| YOLOv8-Small | CSPDarknet | 0.6739 | 0.5723 |
+| **MTTL Det(3) + RoI** | **ResNet-50 (Hybrid)** | **0.7402** | **0.7710** |
 
 </div>
 
 **Parasitemia Quantification**
 
-Using the WHO formula, I estimated parasitemia on the full test set by comparing cell counts from ground truth annotations against model predictions. MTTL dramatically reduces the Mean Absolute Error (MAE) compared to the baseline.
+Using the WHO formula, I estimated parasitemia on the full test set by comparing cell counts from ground truth annotations against model predictions. MTTL significantly reduces the Mean Absolute Error (MAE) compared to both STL and YOLO baselines, offering superior clinical reliability.
 
 <div align="center">
 
-| Configuration | Paradigm | MAE (%) | Pearson Correlation (r) |
-|:---|:---|:---|:---|
-| Det (3) | STL | 3.30 | 0.8145 |
-| **Det (3) + RoI** | **MTTL** | **1.08** | **0.9739** |
+| Configuration | MAE (%) | Pearson Correlation (r) |
+|:---|:---|:---|
+| Det (3) STL | 3.30 | 0.8145 |
+| YOLOv8-Nano | 2.48 | 0.8830 |
+| YOLOv8-Small | 3.78 | 0.5480 |
+| **MTTL Det(3) + RoI** | **1.08** | **0.9739** |
 
 </div>
+
+*For the full comprehensive ablation studies, 1-class/2-class/3-class comparisons, refer to **Chapter 4** of the [thesis PDF](<MSc Document/MSc.pdf>).*
 
 ## Qualitative Visualizations
 
@@ -129,24 +132,29 @@ The model produces four simultaneous outputs from a single input image. Here are
 ```text
 .
 ├── MSc Document/           # Full thesis PDF
-├── models/                 # Saved model checkpoints (STL and MTTL)
+├── models/                 # Model configs and weight placeholders
 ├── Examples/               # Example outputs from models
 ├── Figure/                 # Architecture diagram
-├── Test/                   # Contains a sample from Lacuna Dataset for quick inference tests
+├── Test/                   # Sample image for quick inference tests
 ├── notebooks/              # Experimental notebooks
 │   ├── Phase1_Exploration.ipynb
 │   ├── Phase2_Preprocessing.ipynb
-│   └── TrainingEval.ipynb
+│   ├── TrainingEval.ipynb
+│   └── SOTA_Comparison.ipynb # Train/Eval against SOTA yolov8(n and s)
 ├── src/
 │   └── utils/
-│       ├── Components.py   # Neural network modules (Backbone, Heads, LoRA)
-│       ├── DataUtils.py    # Dataset classes and augmentation pipelines
-│       ├── Evaluator.py    # Model evaluation and metrics (mAP, Dice, etc.)
-│       ├── Inference.py    # CLI inference tool
-│       ├── Losses.py       # Custom loss functions (Focal, Uncertainty, Tversky)
-│       ├── MTTLTrainer.py  # Multi-task training loop
-│       ├── STLTrainer.py   # Single-task training loop
-│       └── model.py        # Model assembly and forward pass logic
+│       ├── download_weights.py     # Script to fetch model weights
+│       ├── Components.py           # Neural network modules (Backbone, Heads, LoRA)
+│       ├── model.py                # Model assembly and forward pass logic
+│       ├── DataUtils.py            # Dataset classes and augmentation pipelines
+│       ├── Evaluator.py            # Model evaluation and metrics (mAP, Dice, etc.)
+│       ├── Inference.py            # CLI inference tool
+│       ├── Losses.py               # Custom loss functions (Focal, Uncertainty, Tversky)
+│       ├── MTTLTrainer.py          # Multi-task training
+│       ├── STLTrainer.py           # Single-task training
+│       ├── experiment_manager.py   # utility for managing all the experiments
+│       ├── ReEval.py               # Evaluate any run
+│       └── Report.py               # Performance Report
 └── requirements.txt
 ├── ReadMe.md               
 ├── LICENCE              
@@ -193,6 +201,21 @@ This script:
 4. Creates binary masks for segmentation
 5. Saves processed tensors to `data/preprocessed_NLM/mttl_training_data`
 
+## Model Weights Download
+
+The repository includes the model configurations, but the large weight files (~1.9GB) must be downloaded separately. You can do this automatically using the provided script.
+
+```bash
+# Download weights from Google Drive (requires gdown)
+# The script will prompt for confirmation
+python src/utils/download_weights.py
+
+# Or to download automatically without prompt:
+# echo y | python src/utils/download_weights.py
+```
+
+This will populate the `models/` directory with the `.pth` files required for inference.
+
 ## Training and Evaluation
 
 Training is managed by `ExperimentManager` in the training notebook.
@@ -210,25 +233,24 @@ All artifacts (checkpoints, logs, plots) save automatically to: `experiments/...
 
 ## Inference
 
-I built a command-line interface for running trained models on new images:
+I built a command-line interface for running trained models on new images. The tool will automatically attempt to download weights if they are missing.
 
 ```bash
-python src/utils/Inference.py \
-    --image_path "path/to/test_image.jpg" \
-    --task multi_task \
+python src/utils/Inference.py "Test/Lacuna_Sample.jpg" \
+    --task detection \
     --num-classes 3 \
     --mode mttl \
-    --models-dir "models/" \
+    --models-dir "models" \
     --conf-threshold 0.5 \
     --save-plots \
     --output-dir "inference_results/"
 ```
 
 **Key arguments:**
+- `image_path`: Path to the input image (positional argument)
 - `--task`: Which head to visualize (`detection`, `segmentation`, `heatmap`, `roi_classif`)
 - `--num-classes`: Detection complexity level the model was trained on (1, 2, or 3)
-- `--num-classes-roi`: Cell classification complexity level (2 or 3)
-- `--mode`: Choose `stl`, `mttl`, or `both`
+- `--mode`: Choose `stl` or `mttl`
 - `--show-all-classes`: Optional flag. Without it, visualizer focuses on 'Infected' class
 
 For all available flags:
@@ -344,7 +366,7 @@ If you use this code or find the research helpful, please star ⭐ the repo and 
   title     = {Multi-Task Transfer Learning and Application to Malaria Detection},
   school    = {National Higher Polytechnic School of Douala, University of Douala},
   year      = {2025},
-  month     = {July},
+  month     = {November},
   address   = {Douala, Cameroon},
   url       = {https://github.com/GwadeSteve/MTTL-Research-Malaria}
 }

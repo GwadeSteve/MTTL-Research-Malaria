@@ -37,6 +37,7 @@ ipywidgets==8.0.7
 openpyxl==3.0.10
 xlrd==1.2.0
 XlsxWriter==3.2.2
+gdown
 
 # Utilities
 tqdm==4.67.1
