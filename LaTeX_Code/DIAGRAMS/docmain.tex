@@ -1,0 +1,132 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{csquotes}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\definecolor{thesisblue}{RGB}{20, 68, 106}
+\definecolor{thesisgray}{RGB}{80, 80, 80}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath}   
+\usepackage{array}
+\usepackage{amssymb}   
+\usepackage{amsfonts}  
+\usepackage{multicol}  
+\usepackage{booktabs} 
+\usepackage{tabularx}
+
+\usepackage{enumitem}  
+\usepackage{lipsum}     
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{colortbl}
+\usepackage{longtable} 
+\usepackage{lscape}   
+
+\usepackage{pgfplots} 
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{compat=1.18} 
+\usepackage{float}
+
+\usepackage{etoolbox}
+\usepackage{xcolor} 
+\usepackage{tabularray}
+
+\usepackage{tikz}
+\usetikzlibrary{
+    positioning,
+    fit,
+    arrows.meta,
+    shapes.geometric,
+    calc,
+    matrix,
+    patterns,
+    shadows,
+    backgrounds,
+    decorations.pathreplacing,
+    shapes.misc
+}
+
+\tikzset{
+    cuboid/.style={
+        shape=trapezium,
+        trapezium left angle=70,
+        trapezium right angle=-70,
+        shape border rotate=90,
+        minimum width=2.2cm,
+        minimum height=1cm,
+        draw, thick,
+        align=center,
+        font=\small
+    },
+    cuboidfill/.style={
+        fill=blue!20
+    },
+    trainable/.style={
+        fill=orange!30
+    },
+    block/.style={
+        rectangle, draw, thick,
+        minimum width=3cm, minimum height=1.5cm, align=center,
+        rounded corners=3pt
+    },
+    op/.style={
+        circle, draw, thick, fill=gray!10, minimum size=0.8cm
+    },
+    arrow/.style={
+        -Stealth, thick, draw=black!80
+    },
+    loraarrow/.style={
+        -Stealth, thick, draw=orange!80!black
+    },
+    lorabox/.style={
+        draw=orange!70!black, dashed, thick,
+        inner sep=6pt, rounded corners
+    },
+    blocktitle/.style={
+        font=\sffamily\bfseries\small, text=black!90
+    }, 
+    outnode/.style={
+        rectangle, draw, fill=blue!10, rounded corners, minimum height=1cm
+    }
+}
+
+\begin{document}
+
+\section*{Diagram Library}
+
+\input{convolution}
+\vspace{2cm}
+
+\input{max-pooling}
+\vspace{2cm}
+
+\input{lora}
+\vspace{2cm}
+
+\input{adapted_block}
+\vspace{2cm}
+
+\input{full_backbone}
+\vspace{2cm}
+
+\input{detection_head}
+\vspace{2cm}
+
+\input{heatmap_head}
+\vspace{2cm}
+
+\input{segmentation_head}
+\vspace{2cm}
+
+\input{classif_head}
+
+\end{document}

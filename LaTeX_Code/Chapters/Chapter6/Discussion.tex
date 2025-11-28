@@ -1,0 +1,62 @@
+\chapter{Discussion}
+\label{chap:discussion}
+
+This chapter interprets our results in relation to the initial hypotheses. We discuss the trade-off between specialized and generalized models, the answer to our central research question, the implications for medical AI, and the limitations of the study.
+
+\section{The Specialist vs. The Generalist}
+\label{sec:specialist_vs_generalist}
+
+A key finding from our experiments is the clear trade-off between specialization and generalization. The 1-Class STL detector, trained solely to find infected cells, acted as a formidable specialist. On the full test set, it achieved the highest F1-Score for the infected class ($0.8182$) and an outstanding Recall of $0.8491$ on the challenging infected-only subset. However, this aggressive sensitivity reduced specificity, resulting in 12 false positives on healthy-only slides. More critically, the specialist model was brittle. When we expanded the task to the realistic 3-class setting, the STL framework collapsed, with the infected-class F1-Score dropping to a clinically inadequate $0.3791$.\\
+
+\noindent Conversely, the 3-Class MTTL model augmented with RoI Classification proved to be a superior generalist. While it did not quite match the specialist's peak score on the simple task, it dramatically outperformed the STL baselines in the complex setting. It maintained a strong infected-class F1-Score of $0.7710$ in the 3-class scenario, a relative improvement of over \textbf{103\%} compared to the STL equivalent. Importantly, it achieved this while improving specificity, committing only 3 false positive errors on the healthy-only set. This ability to trade a small amount of narrow-task performance for reliable, broad, and safe diagnostic coverage aligns better with clinical requirements.
+
+\section{Comparing MTTL to State-of-the-Art Detection}
+\label{sec:discussion_mttl_vs_sota}
+
+The comparison against YOLOv8 (Section \ref{sec:benchmarking_sota}) reveals important details. YOLOv8 is a highly optimized, single-stage architecture designed to maximize mean Average Precision (mAP) across all classes. While it achieved a decent overall score, it struggled with the minority \textit{Infected} class (F1 0.57) compared to our model (F1 0.77).\\
+
+\noindent This difference shows that pure data-driven learning has limits in medical domains. YOLO learns \textit{where} objects are based on bounding boxes. However, it does not necessarily learn the fine morphological details needed to distinguish a trophozoite from an artifact when data is scarce.\\
+
+\noindent Our MTTL framework, even with an older ResNet-50 backbone, outperformed the modern YOLO architecture because of the structure provided by the auxiliary tasks:
+\begin{itemize}
+	\item The \textbf{Segmentation} task forces the model to understand the exact pixel boundaries of the parasite, preventing it from confusing overlapping cells.
+	\item The \textbf{RoI Classification} task forces a second feature extraction step on specific cell regions, refining the decision boundary between healthy and infected cells.
+\end{itemize}
+\noindent This suggests that for specialized medical tasks with limited data, explicitly modeling the problem structure works better than simply using a faster, newer architecture.
+
+\section{Answering the Central Research Question}
+\label{sec:answering_research_question}
+
+We sought to determine \textit{whether a multi-task transfer learning framework provides greater efficacy and robustness than single-task learning for automated malaria diagnosis}. Our findings support the conclusion: \textbf{Yes, for diagnostically realistic settings, multi-task transfer learning is the superior paradigm.} This is supported by four pillars of evidence:
+\begin{itemize}
+	\item \textbf{Performance Scaling:} MTTL prevented the severe performance degradation that STL suffered when scaling from 1-class to complex 3-class detection (Hypothesis H1).
+	\item \textbf{Auxiliary Task Synergy:} The performance gains from specific auxiliary tasks confirm that adding relevant inductive biases benefits this domain (Hypothesis H2).
+	\item \textbf{Robustness:} The 3-Class MTTL model achieved a far better balance of sensitivity (Recall $0.6214$) and specificity (low false positives) compared to the STL models, which struggled with complexity (Hypothesis H3).
+	\item \textbf{Clinical Utility:} The improved representations translated to better downstream utility. The 3-Class MTTL model reduced the Parasitemia Mean Absolute Error from $3.30\%$ (STL) to $1.08\%$, a 67\% reduction in estimation error.
+\end{itemize}
+
+\section{Implications of Key Findings}
+\label{sec:implications}
+
+These results have practical implications for the design of diagnostic systems in computational pathology. First, benchmarking on simple, binary tasks is risky. A model that appears state-of-the-art on a narrow benchmark may fail in a real-world workflow that requires multiple, interdependent outputs. The collapse of our STL models in the multi-class setting demonstrates this danger.\\
+
+\noindent Second, specific auxiliary tasks act as powerful regularizers. RoI Classification was the most effective, delivering performance gains of over 103\% for 3-class detection. This suggests that forcing the model to refine features on localized cell instances is highly beneficial. Segmentation also proved synergistic, providing shape priors that improved performance by roughly 90\%. However, we observed negative transfer in the simple 1-class setting, showing that synergy is not automatic, it requires matching auxiliary objectives to the complexity of the primary task.\\
+
+\noindent Finally, the success of our Hybrid Tuning strategy offers a blueprint for future work. It demonstrates that combining the efficiency of PEFT methods like LoRA with targeted fine-tuning of deep backbone layers is a computationally feasible way to adapt large, pre-trained models to complex medical domains.
+
+\section{Limitations of the Study}
+\label{sec:limitations}
+
+While this research provides strong evidence for the benefits of MTTL, we must acknowledge specific limitations that define the scope of our conclusions.
+
+\begin{itemize}
+	\item \textbf{Dataset Scope:} We used only the NLM dataset, which contains Giemsa-stained thin blood smears of \textit{P. falciparum}. We have not validated these models on other species (e.g., \textit{P. vivax}) or thick blood smears. True clinical robustness requires evaluation on multi-center datasets that account for variations in slide preparation and imaging hardware.
+	
+	\item \textbf{Annotation Noise:} The dataset contains inherent noise, such as ambiguous cell boundaries and potential inconsistencies in labeling early-stage trophozoites. This noise creates a performance ceiling for supervised training and may explain some discrepancies between segmentation and detection performance.
+	
+	\item \textbf{Task Interference:} Multi-task synergy is not guaranteed. The heatmap localization task consistently interfered with other auxiliary tasks in higher-order combinations. Future work should explore architectures like cross-stitch networks or gradient surgery to mitigate this negative transfer.
+	
+	\item \textbf{Optimization Constraints:} Practical limits constrained our hyperparameter tuning. While we applied a consistent protocol, each configuration would likely benefit from an exhaustive search for optimal learning rates and loss weights. Additionally, Automatic Mixed Precision required careful implementation to prevent numerical instability.
+	
+	\item \textbf{Simplified Parasitemia Estimation:} We estimated parasitemia based on cell counts from single image fields. Clinical practice typically requires counting parasites against white blood cells over many fields to ensure statistical validity. A fully validated clinical tool would need to aggregate counts across multiple fields.
+\end{itemize}

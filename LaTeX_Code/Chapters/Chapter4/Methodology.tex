@@ -1,0 +1,737 @@
+\chapter{Methodological Application to Malaria Diagnosis}
+\label{chap:methodology}
+The previous chapter established the theoretical framework for Multi-Task Transfer Learning. In this chapter, we apply the defined framework to the practical challenge of automated malaria diagnosis from Giemsa stained thin blood smears. We begin by defining the specific MTTL objective function used in this study, including the selected fine-tuning and task balancing strategies. Then we describe the data curation and preprocessing steps required to ensure model stability. This is followed by an overview of the model architecture, which features a shared backbone adapted via Low Rank Adaptation (LoRA) and specialized decoder heads. Finally, we outline the experimental protocols designed to benchmark the system against Single-Task Learning (STL) baselines and evaluate its performance across different data subsets.
+
+\section{Instantiated MTTL Objective for Malaria Diagnosis}
+\label{sec:instantiated_mttl_objective}
+
+Our framework adopts a \textbf{One-to-Many} topology, using a single source model pre-trained on ImageNet to learn multiple tasks relevant to malaria diagnosis. To achieve this, we combine two specific strategies:
+
+\begin{itemize}
+	\item \textbf{Fine-Tuning Strategy:} We employ both \textbf{Parameter-Efficient Fine-Tuning (PEFT)} using LoRA adapters and a \textbf{Hybrid Tuning} approach. This enables a comparison between highly efficient adaptation and a more comprehensive fine-tuning of deeper backbone layers to balance performance against computational cost.
+	\item \textbf{Task-Balancing Strategy:} We utilize \textbf{Uncertainty Weighting} to manage the losses of heterogeneous tasks. This automated approach allows the model to dynamically learn the optimal contribution of each task during training, avoiding the difficulties of manual hyperparameter tuning.
+\end{itemize}
+
+\noindent
+These choices define the final optimization problem addressed in our experiments. \\
+
+\noindent Let $\theta_\phi^*$ represent the parameters of the pre-trained source backbone. By integrating the chosen fine-tuning strategy with Uncertainty Weighting, the objective function is expressed as:
+
+\begin{equation}
+	\min_{\Theta_{\text{train}}, \{\theta_{g_k}\}, \{\sigma_k\}} \quad 
+	\sum_{k=1}^M \left( \frac{1}{2\sigma_k^2}\,\hat{R}_k\big(\Theta_{\text{train}},\theta_{g_k}\big) + \log \sigma_k \right)
+	+ \Omega_{\text{reg}}(\Theta_{\text{train}})
+	\label{eq:mtl_objective_single_clean}
+\end{equation}
+
+\noindent
+where the empirical risk for task $k$ is defined as:
+
+\begin{equation}
+	\hat{R}_k\big(\Theta_{\text{train}},\theta_{g_k}\big)
+	\;=\;
+	\frac{1}{N_k}\sum_{i=1}^{N_k}
+	\mathcal{L}_k\!\Big( 
+	g_k\big(\phi_{\text{adapted}}(\mathbf{x}_i;\theta_\phi^*,\Theta_{\text{train}});\theta_{g_k}\big),\; y_{ik}
+	\Big).
+	\label{eq:empirical_risk_clean}
+\end{equation}
+
+\noindent
+Substituting \eqref{eq:empirical_risk_clean} into \eqref{eq:mtl_objective_single_clean} yields the explicit double-sum formulation:
+
+\begin{equation}
+	\min_{\Theta_{\text{train}}, \{\theta_{g_k}\}, \{\sigma_k\}} \quad
+	\sum_{k=1}^M \left[
+	\frac{1}{2\sigma_k^2 N_k}\sum_{i=1}^{N_k}
+	\mathcal{L}_k\!\Big( 
+	g_k\big(\phi_{\text{adapted}}(\mathbf{x}_i;\theta_\phi^*,\Theta_{\text{train}});\theta_{g_k}\big),\; y_{ik}
+	\Big)
+	+ \log \sigma_k
+	\right]
+	+ \Omega_{\text{reg}}(\Theta_{\text{train}})
+	\myequations{Instantiated MTTL Objective.}
+	\label{eq:final_objective_double_sum_clean}
+\end{equation}
+
+\section{Data Curation and Preprocessing Pipeline}
+\label{sec:data_curation_and_pipeline}
+\subsection{Dataset}
+\label{ssec:dataset_description}
+
+We utilize the publicly available \textbf{Malaria Dataset from the \acf{NLM}} \cite{NLMMalariaDataset}, curated by the Lister Hill National Center for Biomedical Communications \parencite{Rajaraman2018NIHMalariaDataset, KassimClustering}. The dataset contains Giemsa-stained thin blood smear images from \textbf{193 patients} (148 \textit{P. falciparum}-infected and 45 healthy), captured using a smartphone attached to a light microscope. For this study, we focus on three primary annotations essential for diagnosis:
+\begin{itemize}
+	\item \textbf{Parasitized:} \acp{RBC} containing one or more malaria parasites.
+	\item \textbf{Uninfected:} Healthy red blood cells.
+	\item \textbf{\acp{WBC}:} Leukocytes, a critical negative class that the system must distinguish from parasites.
+\end{itemize}
+
+\noindent As shown in Table~\ref{tab:dataset_class_distribution}, the data reflects the reality of clinical samples with severe \textbf{class imbalance}. Uninfected cells vastly outnumber parasitized ones, while white blood cells are extremely rare. This disparity motivates the loss-balancing and data-sampling strategies used in our experiments in order to fix this.
+
+\begin{table}[htbp]
+	\centering
+	\caption{Class Distribution of Annotated Cells in the Dataset.}
+	\label{tab:dataset_class_distribution}
+	\begin{tabular}{@{}lr@{}}
+		\toprule
+		\textbf{Cell Class} & \textbf{Total Annotations} \\
+		\midrule
+		Uninfected & 155,640 \\
+		Parasitized & 6,810 \\
+		White Blood Cell & 220 \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\noindent To ensure unbiased evaluation, we partitioned the dataset into training (80\%), validation (10\%), and test (10\%) sets at the \textbf{patient level}. This prevents data leakage by guaranteeing that the model never encounters images from the same patient in both training and testing.
+
+\subsection{Image Preprocessing Pipeline}
+\label{ssec:preprocessing_pipeline}
+Microscopy images frequently vary in staining, illumination, and acquisition hardware. To mitigate these domain shifts, we designed a sequential preprocessing pipeline. Figure~\ref{fig:dataset_samples} displays raw samples, while Figure~\ref{fig:preprocessed_samples} shows the corresponding results after processing.
+
+\paragraph{Contrast Enhancement (CLAHE).}  
+To highlight intracellular structures like ring-stage parasites, we applied \textbf{Contrast Limited Adaptive Histogram Equalization (CLAHE)} \parencite{Pizer1987AdaptiveHistogramEqualization}. Images were converted to the LAB color space, and CLAHE was applied only to the Luminance channel to improve contrast while preserving color fidelity.
+
+\paragraph{Resizing.}  
+All images were standardized to $512 \times 512$ pixels using Lanczos interpolation. We favored this method over padding to ensure the entire image region contributes useful features, accepting a minor trade-off in aspect ratio preservation.
+
+\paragraph{Data Augmentation and Normalization.}  
+We applied on-the-fly augmentations during training, including random flips, $90^{\circ}$ rotations, color adjustments, and noise simulation. Finally, pixel intensities were normalized using standard ImageNet statistics to ensure compatibility with the pretrained backbone:
+\begin{equation}
+	\mu = (0.485,\; 0.456,\; 0.406), \quad 
+	\sigma = (0.229,\; 0.224,\; 0.225).
+\end{equation}
+\noindent Normalization was applied only during training and inference, not for the visualization grids (Figures~\ref{fig:dataset_samples} and~\ref{fig:preprocessed_samples}).
+
+\begin{figure}[htbp]
+	\centering	
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm, keepaspectratio]{Images/Samples/sample1.jpg}
+		\caption{Sample 1}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm, keepaspectratio]{Images/Samples/sample2.jpg}
+		\caption{Sample 2}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm, keepaspectratio]{Images/Samples/sample3.jpg}
+		\caption{Sample 3}
+	\end{subfigure}
+	
+	\vspace{1mm}
+	
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm, keepaspectratio]{Images/Samples/sample4.jpg}
+		\caption{Sample 4}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm, keepaspectratio]{Images/Samples/sample5.jpg}
+		\caption{Sample 5}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm, keepaspectratio]{Images/Samples/sample6.jpg}
+		\caption{Sample 6}
+	\end{subfigure}
+	
+	\vspace{1mm}
+	
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm, keepaspectratio]{Images/Samples/sample7.jpg}
+		\caption{Sample 7}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm, keepaspectratio]{Images/Samples/sample8.jpg}
+		\caption{Sample 8}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm, keepaspectratio]{Images/Samples/sample9.jpg}
+		\caption{Sample 9}
+	\end{subfigure}
+	
+	\caption{Original Samples from NLM Thin Falciparum dataset.}
+	\label{fig:dataset_samples}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering	
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm]{Images/Samples_Preprocessed/sample1.jpg}
+		\caption{Sample 1}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm]{Images/Samples_Preprocessed/sample2.jpg}
+		\caption{Sample 2}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm]{Images/Samples_Preprocessed/sample3.jpg}
+		\caption{Sample 3}
+	\end{subfigure}
+	
+	\vspace{1mm} 
+	
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm]{Images/Samples_Preprocessed/sample4.jpg}
+		\caption{Sample 4}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm]{Images/Samples_Preprocessed/sample5.jpg}
+		\caption{Sample 5}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm]{Images/Samples_Preprocessed/sample6.jpg}
+		\caption{Sample 6}
+	\end{subfigure}
+	
+	\vspace{1mm} 
+	
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm]{Images/Samples_Preprocessed/sample7.jpg}
+		\caption{Sample 7}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm]{Images/Samples_Preprocessed/sample8.jpg}
+		\caption{Sample 8}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=\textwidth, height=3cm]{Images/Samples_Preprocessed/sample9.jpg}
+		\caption{Sample 9}
+	\end{subfigure}
+	
+	\caption{Preprocessed version of the images from Figure~\ref{fig:dataset_samples}.}
+	\label{fig:preprocessed_samples}
+\end{figure}
+
+\section{Tasks Formulation}
+\label{sec:task_formulation}
+
+We formulate malaria diagnosis as a set of $M\leq4$ synergistic tasks, centered on Multi-Class Cell Detection. Each task is defined by its objective, label space, and a loss function.
+
+\begin{itemize}
+	\item \textbf{Task 1: Multi-Class Cell Detection ($\mathcal{T}_{\text{det}}$):} The primary task.
+	\begin{itemize}
+		\item \textbf{Objective:} Localize every cell of interest with a bounding box and assign it a class label.
+		\item \textbf{Label Space ($\mathcal{Y}_{\text{det}}$):} $y_{\text{det}} = \{(\mathbf{b}_j, c_j)\}_{j=1}^{N_{\text{obj}}}$, where $\mathbf{b}_j \in \mathbb{R}^4$ are coordinates and $c_j \in \{1, \dots, C\}$ is the class label.
+		\item \textbf{Loss Function ($\mathcal{L}_{\text{det}}$):} Aggregates four equally weighted components from Faster R-CNN \parencite{Ren2015FasterRCNN}:
+		\begin{equation}
+			\mathcal{L}_{\text{det}} = 
+			\mathcal{L}_{\text{RPN\_cls}} + 
+			\mathcal{L}_{\text{RPN\_reg}} + 
+			\mathcal{L}_{\text{RoI\_cls}} + 
+			\mathcal{L}_{\text{RoI\_reg}}
+			\myequations{Total Multi-Class Detection Loss.}
+			\label{eq:det_loss}
+		\end{equation}
+		The Region Proposal Network (RPN) uses Binary Cross-Entropy to distinguish objects from background. The final Region of Interest (RoI) classification employs \textbf{Focal Loss} \parencite{Lin2017Focal} ($\alpha_t=0.25, \gamma=2.0$) to handle severe class imbalance. Bounding box regression uses the \textbf{Smooth L1 Loss} for stability:
+		\begin{equation}
+			\text{smooth}_{L_1}(x) = \begin{cases} 0.5x^2, & |x| < 1 \\ |x| - 0.5, & \text{otherwise} \end{cases}
+			\myequations{Smooth L1 Loss component.}
+		\end{equation}
+	\end{itemize}
+	
+	\item \textbf{Task 2: Cell Segmentation ($\mathcal{T}_{\text{seg}}$):} An auxiliary dense prediction task providing shape priors.
+	\begin{itemize}
+		\item \textbf{Objective:} Generate a binary mask for all cells.
+		\item \textbf{Label Space ($\mathcal{Y}_{\text{seg}}$):} Binary mask $\mathbf{M} \in \{0, 1\}^{64 \times 64}$.
+		\item \textbf{Loss Function ($\mathcal{L}_{\text{seg}}$):} An equally weighted sum ($w_{\text{bce}}=w_{\text{dice}}=0.5$) of Binary Cross-Entropy and Dice Loss:
+		\begin{equation}
+			\mathcal{L}_{\text{seg}} = \frac{1}{2} \left( -\frac{1}{N}\sum_{i} \big[ M_i\log\hat{M}_i + (1{-}M_i)\log(1{-}\hat{M}_i) \big] + 1 - \frac{2 \sum \hat{M}_i M_i + \epsilon}{\sum \hat{M}_i + \sum M_i + \epsilon} \right)
+			\myequations{Cell Segmentation Loss.}
+			\label{eq:seg_loss}
+		\end{equation}
+	\end{itemize}
+	
+	\item \textbf{Task 3: Infection Localization ($\mathcal{T}_{\text{loc}}$):} An auxiliary regression task serving as an attention prior.
+	\begin{itemize}
+		\item \textbf{Objective:} Produce a heatmap highlighting parasite centers.
+		\item \textbf{Label Space ($\mathcal{Y}_{\text{loc}}$):} Continuous heatmap $\mathbf{H} \in [0, 1]^{64 \times 64}$.
+		\item \textbf{Loss Function ($\mathcal{L}_{\text{loc}}$):} A composite loss designed for imbalance and boundary alignment inspired by \textcite{abraham2019novel}:
+		\begin{equation}
+			\begin{aligned}
+				\mathcal{L}_{\text{loc}} &= 0.8 \cdot \left( 1 - \text{TI} \right)^{\gamma} + 0.2 \cdot \left\lVert \nabla \hat{\mathbf{H}} - \nabla \mathbf{H} \right\rVert_1 \\
+				\text{where } \text{TI} &= \frac{\sum \hat{H}_i H_i + \epsilon}{\sum \hat{H}_i H_i + \alpha \sum \hat{H}_i(1-H_i) + \beta \sum (1-\hat{H}_i)H_i + \epsilon}
+			\end{aligned}
+			\myequations{Infection Localization Loss.}
+			\label{eq:heatmap_loss}
+		\end{equation}
+		We use Focal Tversky Loss ($\alpha=0.7, \beta=0.3, \gamma=0.75$) to penalize false negatives, supplemented by a Boundary Loss on Sobel gradients.
+	\end{itemize}
+	
+	\item \textbf{Task 4: RoI Classification ($\mathcal{T}_{\text{roi}}$):} Provides direct supervisory signals to the backbone.
+	\begin{itemize}
+		\item \textbf{Objective:} Classify pooled features from ground-truth RoIs.
+		\item \textbf{Label Space ($\mathcal{Y}_{\text{roi}}$):} Class label $c \in \{1, \dots, C\}$.
+		\item \textbf{Loss Function ($\mathcal{L}_{\text{roi}}$):} \textbf{Weighted Cross-Entropy Loss} to address imbalance:
+		\begin{equation}
+			\mathcal{L}_{\text{roi}}(\mathbf{z}, c) = - w_c \log\left(\frac{\exp(z_c)}{\sum_{j=1}^{C} \exp(z_j)}\right)
+			\myequations{RoI Classification Loss.}
+			\label{eq:classif_loss}
+		\end{equation}
+		Weights $w_c$ are set to $[23.0, 1.0, 100.0]$ for \{Infected, Healthy, WBC\} respectively.
+	\end{itemize}
+\end{itemize}
+
+\noindent Figure~\ref{fig:task_data_visualization} visualizes these tasks on a sample image. Detection identifies cell types (Infected: red, Healthy: blue, WBC: lime), while Segmentation outlines boundaries. Localization highlights parasite regions, and RoI Classification distinguishes cell features. Together, these tasks mirror the step-wise reasoning of a human expert.
+
+\begin{figure}[t]
+	\centering
+	\caption{Visualization of Ground Truth Data for the Multi-Task Framework.}
+	\label{fig:task_data_visualization}
+	
+	\captionsetup{skip=2pt, font=small} 
+	
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/input_sample_1.jpg}
+		\caption*{Input 1} 
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/input_sample_2.jpg}
+		\caption*{Input 2}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/input_sample_3.jpg}
+		\caption*{Input 3}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/input_sample_4.jpg}
+		\caption*{Input 4}
+	\end{subfigure}
+	
+	\vspace{1mm}
+	
+	\centerline{\footnotesize\textbf{Task: Detection ($\mathcal{T}_{\text{det}}$)}}
+	\vspace{1mm}
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/det_sample_1.jpg}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/det_sample_2.jpg}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/det_sample_3.jpg}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/det_sample_4.jpg}
+	\end{subfigure}
+	
+	\vspace{1mm} 
+	
+	\centerline{\footnotesize\textbf{Task: Segmentation ($\mathcal{T}_{\text{seg}}$)}}
+	\vspace{1mm}
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/seg_sample_1.jpg}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/seg_sample_2.jpg}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/seg_sample_3.jpg}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/seg_sample_4.jpg}
+	\end{subfigure}
+	
+	\vspace{1mm} 
+	
+	\centerline{\footnotesize\textbf{Task: Localization ($\mathcal{T}_{\text{loc}}$)}}
+	\vspace{1mm}
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/heatmap_sample_1.jpg}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/heatmap_sample_2.jpg}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/heatmap_sample_3.jpg}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.19\textwidth}
+		\includegraphics[width=\linewidth, keepaspectratio]{Images/Task_Visualizations/heatmap_sample_4.jpg}
+	\end{subfigure}
+	
+\end{figure}
+
+\section{MTTL Model Architecture}
+\label{sec:model_architecture}
+The architecture of our proposed system is a modular and flexible instantiation of the MTTL framework, designed for both rigorous experimentation and high performance. It adheres to the prevalent hard parameter sharing paradigm, comprising two primary parts a single, powerful shared backbone that learns a common feature representation, and a set of specialized, task-specific decoders (heads) that interpret these features. \\
+
+\begin{figure}[htbp]
+	\centering
+	\scalebox{1.0}{
+		\begin{tikzpicture}[
+			xshift=-1.5cm,
+			node distance=1.1cm and 0.9cm,
+			every node/.style={font=\sffamily\small},
+			]
+			
+			\tikzset{
+				stem_block/.style={rectangle, draw=purple!40!black, thick, fill=purple!12, rounded corners, minimum width=3.0cm, minimum height=0.85cm, align=center},
+				backbone_block/.style={rectangle, draw=blue!50!black, thick, fill=blue!6, rounded corners, minimum width=3.0cm, minimum height=0.95cm, align=center},
+				trainable_block/.style={rectangle, draw=purple!90!black, thick, fill=purple!20, rounded corners, minimum width=3.0cm, minimum height=0.95cm, align=center},
+				lora_block/.style={rectangle, draw=orange!60!black, thick, fill=orange!22, rounded corners, minimum width=3.4cm, minimum height=1.3cm},
+				fpn_block/.style={rectangle, draw=cyan!60!black, thick, fill=cyan!12, rounded corners, minimum width=3.6cm, minimum height=1.05cm, align=center},
+				head_block/.style={rectangle, draw=green!50!black, thick, fill=green!12, rounded corners, minimum width=3.2cm, minimum height=0.95cm, align=center},
+				head_group/.style={draw=gray!50, fill=gray!5, rounded corners, inner sep=8pt},
+				small_badge/.style={draw=orange!65!black, fill=orange!10, rounded corners=2pt, font=\sffamily\scriptsize\bfseries, inner sep=2pt, text=orange!85!black},
+				thin_arrow/.style={-Stealth, line width=0.9pt, draw=black!70},
+				feat_arrow/.style={-Stealth, line width=0.9pt, rounded corners=3pt, draw=orange!65!black},
+				fpn_arrow/.style={-Stealth, dashed, line width=0.9pt, draw=cyan!70!black},
+				output_bbox/.style={rectangle, draw=black!40, thick, fill=gray!10, rounded corners, minimum width=2.8cm, minimum height=1.2cm, align=center},
+				output_mask/.style={rectangle, draw=black!40, thick, fill=gray!10, minimum size=1.5cm,
+					path picture={
+						\foreach \i in {0,1,...,7} {
+							\draw[gray!40] (path picture bounding box.north west) ++(0.1875*\i cm, 0) -- ++(0, -1.5cm);
+							\draw[gray!40] (path picture bounding box.north west) ++(0, -0.1875*\i cm) -- ++(1.5cm, 0);
+						}
+				}},
+			}
+			
+			\node[draw=black!70, thick, minimum size=1.8cm, label={[below, yshift=3mm, font=\tiny\ttfamily]512x512x3}] (input) {\includegraphics[width=1.6cm]{DIAGRAMS/input.png}};
+			\node[stem_block, below=0.8cm of input] (stem) {Stem};
+			\node[below=0mm of stem, font=\tiny\ttfamily, text=black!70] (stemshape) {256x256x64};
+			\draw[thin_arrow, draw=purple!70!black] (input) -- (stem);
+			
+			\node[lora_block, below=1.0cm of stem] (l1) {};
+			\node[backbone_block, at=(l1)] (s1) {Stage 1};
+			\node[below=2mm of s1, font=\tiny\ttfamily, text=black!70] {128x128x256};
+			\coordinate (badge_shift) at (-3cm,0.12cm);
+			\node[small_badge, anchor=south west] (l1badge) at ($ (l1.north east) + (badge_shift) $) {LoRA};
+			
+			\node[lora_block, below=of l1] (l2) {};
+			\node[backbone_block, at=(l2)] (s2) {Stage 2};
+			\node[below=2mm of s2, font=\tiny\ttfamily, text=black!70] {64x64x512};
+			\node[small_badge, anchor=south west] (l2badge) at ($ (l2.north east) + (badge_shift) $) {LoRA};
+			
+			\node[lora_block, below=of l2] (l3) {};
+			\node[backbone_block, at=(l3)] (s3) {Stage 3};
+			\node[below=2mm of s3, font=\tiny\ttfamily, text=black!70] {32x32x1024};
+			\node[small_badge, anchor=south west] (l3badge) at ($ (l3.north east) + (badge_shift) $) {LoRA};
+			
+			\node[lora_block, below=of l3] (l4) {};
+			\node[trainable_block, at=(l4)] (s4) {Stage 4};
+			\node[below=3mm of s4, font=\tiny\ttfamily, text=black!70] {16x16x2048};
+			\node[small_badge, anchor=south west] (l4badge) at ($ (l4.north east) + (badge_shift) $) {LoRA};
+			
+			\node[circle, draw=black!60, thick, fill=gray!8, below=of l4] (gap) {GAP};
+			\node[rectangle, draw=orange!60!black, thick, fill=orange!18, rounded corners, minimum height=1.0cm, minimum width=0.45cm, below=0.4cm of gap] (gvec) {};
+			\node[below=0.1cm of gvec, font=\tiny\ttfamily\bfseries] {2048-D};
+			\draw[thin_arrow, draw=blue!70!black] (stem) -- (l1);
+			\draw[thin_arrow, draw=blue!70!black] (l1) -- (l2);
+			\draw[thin_arrow, draw=blue!70!black] (l2) -- (l3);
+			\draw[thin_arrow, draw=blue!70!black] (l3) -- (l4);
+			\draw[thin_arrow, draw=blue!70!black] (l4) -- (gap);
+			\draw[thin_arrow, draw=blue!70!black] (gap) -- (gvec);
+			
+			\coordinate (head_start) at ($(l2.east) + (5.0, 1.5)$); 
+			
+			\node[fpn_block, at=(head_start)] (fpn) {Feature Pyramid Network};
+			\node[head_block, below=0.5cm of fpn] (det_head) {Detection \& RoI Head};
+			\node[output_bbox, right=1.2cm of det_head] (out_det) {BBoxes \& Classes};
+			
+			\node[head_block, below=3.0cm of det_head] (seg_head) {Segmentation Head};
+			\node[output_mask, right=1.2cm of seg_head] (out_seg) {};
+			\node[below=1mm of out_seg, font=\tiny\ttfamily] {64$\times$64 Mask};
+			
+			\node[head_block, below=2.5cm of seg_head] (heat_head) {Localization Head};
+			\node[output_mask, right=1.2cm of heat_head] (out_heat) {};
+			\node[below=1mm of out_heat, font=\tiny\ttfamily] {64$\times$64 Mask};
+			
+			\begin{scope}[on background layer]
+				\node[draw=blue!50, fill=blue!5, rounded corners, inner sep=8pt, fit=(input) (stem) (l1) (l4) (gvec)] (backbone_zone) {};
+				\node[head_group, fit=(fpn) (det_head) (out_det)] (det_group) {};
+				\node[head_group, fit=(seg_head) (out_seg)] (seg_group) {};
+				\node[head_group, fit=(heat_head) (out_heat)] (heat_group) {};
+			\end{scope}
+			
+			\draw[fpn_arrow] (fpn.south) -- (det_head.north) node[midway, right, font=\tiny] {Pyramid Feats};
+			\draw[thin_arrow] (det_head) -- (out_det);
+			\draw[thin_arrow] (seg_head) -- (out_seg);
+			\draw[thin_arrow] (heat_head) -- (out_heat);
+			
+			\coordinate (c1_fork) at ($(l1.east)+(1.8cm,0)$);
+			\coordinate (c2_fork) at ($(l2.east)+(1.8cm,0)$);
+			\coordinate (c3_fork) at ($(l3.east)+(1.8cm,0)$);
+			\coordinate (c4_fork) at ($(l4.east)+(1.8cm,0)$);
+			
+			\draw[feat_arrow] (l1.east) -- (c1_fork) node[midway, above, font=\tiny] {C1};
+			\draw[feat_arrow] (l2.east) -- (c2_fork) node[midway, above, font=\tiny] {C2};
+			\draw[feat_arrow] (l3.east) -- (c3_fork) node[midway, above, font=\tiny] {C3};
+			\draw[feat_arrow] (l4.east) -- (c4_fork) node[midway, above, font=\tiny] {C4};
+			
+			\draw[feat_arrow] (c2_fork) |- ($(det_group.west)+(0,0.8cm)$) node[above,pos=0.8,font=\tiny] {C2};
+			\draw[feat_arrow] (c3_fork) |- ($(det_group.west)+(0,0.5cm)$) node[above,pos=0.8,font=\tiny] {C3};
+			\draw[feat_arrow] (c4_fork) |- ($(det_group.west)+(0,0.2cm)$) node[above,pos=0.8,font=\tiny] {C4};
+			
+			\draw[feat_arrow] (c1_fork) |- ($(seg_group.west)+(0,0.6cm)$) node[above,pos=0.8,font=\tiny] {C1};
+			\draw[feat_arrow] (c2_fork) |- ($(seg_group.west)+(0,0.2cm)$) node[above,pos=0.8,font=\tiny] {C2};
+			\draw[feat_arrow] (c3_fork) |- ($(seg_group.west)+(0,-0.2cm)$) node[above,pos=0.8,font=\tiny] {C3};
+			\draw[feat_arrow] (c4_fork) |- ($(seg_group.west)+(0,-0.6cm)$) node[above,pos=0.8,font=\tiny] {C4};
+			
+			\draw[feat_arrow] (c1_fork) |- ($(heat_group.west)+(0,0.2cm)$) node[above,pos=0.8,font=\tiny] {C1};
+			\draw[feat_arrow] (c2_fork) |- ($(heat_group.west)+(0,-0.2cm)$) node[above,pos=0.8,font=\tiny] {C2};
+			
+		\end{tikzpicture}
+	}
+	\captionof{figure}{
+		High-level diagram of our MTTL model architecture.
+	}
+	\label{fig:full_mttl_system}
+\end{figure}
+
+\noindent The design is shown conceptually in Figure~\ref{fig:full_mttl_system}, a 512$\times$512$\times$3 input image passes through the backbone stages (blue), with Stage 4 fine-tuned (purple) alongside \acp{LoRA} adapters (orange). Multi-scale features C1 to C4 are extracted from the backbone and passed to task-specific heads: C2 to C4 feed the \ac{FPN} for object detection, C1 to C4 are used for segmentation, and C1 to C2 support localization. This modular architecture enables efficient transfer learning through selective parameter updates while maintaining the representational capacity of the pretrained backbone. The design also facilitates exploration of different task combinations during training. Further component details are provided in the following sections.
+
+\subsection{Shared Backbone with Integrated LoRA Adapters}
+\label{ssec:shared_backbone}
+We use a \textbf{ResNet-50} backbone \parencite{He2016DeepResidualLearning} pre-trained on ImageNet. We selected this architecture because it captures rich features effectively while avoiding the vanishing gradient issues found in other deep networks. It is more efficient than older models like VGG \parencite{Simonyan2014VeryDeepConvolutional} and offers a cleaner, more modular structure than Inception designs \parencite{Szegedy2016RethinkingInception}. This modularity makes it ideal for integrating adaptation layers.\\
+
+\noindent To adapt the model, we insert \textbf{Low-Rank Adaptation (LoRA)} modules into the residual blocks. As shown in Figure~\ref{fig:lora_diagrams}, these modules add small trainable matrices $(W_A, W_B)$ alongside the frozen layers. This forms our \textbf{Adapted ResNet Backbone}. During training, the original weights $\theta_\phi^*$ remain frozen; only the LoRA parameters $\theta_\psi$ are updated. This approach preserves the pre-trained knowledge while allowing the model to learn the specific requirements of malaria diagnosis. In our \textbf{Hybrid Tuning} strategy, we also unfreeze the final residual block (\textit{layer4}). We fine-tune this layer with a very low learning rate to refine the most abstract features without disrupting the overall hierarchy.
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[b]{0.9\textwidth}
+		\centering
+		\resizebox{\textwidth}{!}{
+			\input{DIAGRAMS/lora}
+		}
+		\caption{LoRA Module.}
+		\label{fig:lora_module}
+	\end{subfigure}
+	
+	\vspace{2cm}
+	
+	\begin{subfigure}[b]{0.9\textwidth}
+		\centering
+		\resizebox{\textwidth}{!}{
+			\input{DIAGRAMS/adapted_block}
+		}
+		\caption{Adapted ResNet Block.}
+		\label{fig:adapted_block}
+	\end{subfigure}
+	
+	\vspace{2cm}
+	
+	\begin{subfigure}[b]{0.9\textwidth}
+		\centering
+		\resizebox{\textwidth}{!}{
+			\input{DIAGRAMS/full_backbone}
+		}
+		\caption{Adapted ResNet50 Backbone.}
+		\label{fig:adapted_backbone}
+	\end{subfigure}
+	
+	\caption{Architectural details of the shared backbone, illustrating (a) the core LoRA module, (b) its integration into a standard ResNet block, and (c) the overall adapted backbone structure.}
+	\label{fig:lora_diagrams}
+\end{figure}
+
+\subsection{Task-Specific Heads}
+\label{ssec:task_specific_decoders}
+The shared backbone produces multi-scale features, which are then directed into specialized decoder heads, each designed to solve a specific diagnostic task.
+
+\begin{figure}[htbp]
+	\centering
+	\resizebox{0.5\textwidth}{!}{
+		\input{DIAGRAMS/detection_head}
+	}
+	\caption{Custom Faster R-CNN Detection Head Architecture.}
+	\label{fig:rcnn_head_diagram}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\resizebox{0.5\textwidth}{!}{
+		\input{DIAGRAMS/segmentation_head}
+	}
+	\caption{Segmentation Head Architecture.}
+	\label{fig:seg_head_diagram}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\resizebox{0.3\textwidth}{!}{
+		\input{DIAGRAMS/heatmap_head}
+	}
+	\caption{Infection Localization Head Architecture.}
+	\label{fig:heatmap_head_diagram}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\resizebox{0.5\textwidth}{!}{
+		\input{DIAGRAMS/classif_head}
+	}
+	\caption{MLP Classification Head Architecture.}
+	\label{fig:clf_head_diagram}
+\end{figure}
+
+\paragraph{\acf{FPN}.} To provide the detection and RoI heads with rich multi-scale information, we pass the backbone features through an \acf{FPN} \parencite{Lin2017FeaturePyramidNetworks}. This structure mixes coarse and fine features via a top-down pathway, ensuring the network operates with feature maps that are both semantically rich and spatially detailed.
+
+\paragraph{Detection Head.}
+For the primary detection task ($\mathcal{T}_{\text{det}}$), we utilize a customized Faster R-CNN head (Figure~\ref{fig:rcnn_head_diagram}) built on the FPN outputs. It comprises the \acf{RPN}, Multi-Scale RoI Align, and a box head. We replaced the standard, heavy MLP box head with a lighter design using separable convolutions. Early tests indicated the default head was prone to overfitting and computationally expensive during multi-task training. This lightweight version reduces parameters and maintain sufficient capacity to model fine cell structures.
+
+\paragraph{RoI Classification Head.}
+We initially explored two classification strategies. The first, cell-level classification, processed pre-cropped $64 \times 64$ cells. However, early experiments showed this caused conflicting gradients with the detection task. We therefore discarded it in favor of \acf{RoI} classification ($\mathcal{T}_{\text{roi}}$). This approach extracts features from ground-truth boxes on the full image using RoI Align and feeds them into the shared \texttt{clf\_head} (Figure~\ref{fig:clf_head_diagram}). This method proved synergistic, encouraging clean class separation on well-localized regions without disrupting the detection objective.
+
+\paragraph{Segmentation Head.} 
+The segmentation head ($\mathcal{T}_{\text{seg}}$) employs a lightweight decoder (Figure~\ref{fig:seg_head_diagram}) inspired by U-Net \parencite{RonnebergerFB15}. It aggregates features from multiple backbone stages and uses upsampling with skip connections to reconstruct a full-resolution mask.
+
+\paragraph{Infection Localization Head.} 
+The localization head ($\mathcal{T}_{\text{loc}}$) is an attention-based decoder that generates a heatmap of infection centers (Figure~\ref{fig:heatmap_head_diagram}). It fuses high-resolution features with a spatial attention block and uses depth-wise separable convolutions to produce the final map.
+
+\medskip
+\noindent \textit{Note: The architectural diagrams referenced in this section were created specifically to illustrate the exact implementation used in this work.}
+
+\section{Experimental Protocol}
+\label{sec:experimental_protocol}
+To rigorously test whether MTTL yields a more robust diagnostic system than STL, we designed a two-phase experimental protocol. This structure isolates key variables to ensure our insights on tuning, data handling, and task interactions are reproducible. All models were trained using the AdamW optimizer \parencite{loshchilov2019decoupled} with a cosine annealing scheduler and linear warm-up.
+
+\subsection{Phase 1: Establishing Optimal STL Baselines}
+\label{ssec:exp_phase1}
+
+The goal of this first phase is to identify the strongest possible \acf{STL} baseline models. We investigate two main design choices:
+
+\begin{itemize}
+	\item \textbf{Tuning Strategy:} We compare \textbf{LoRA-Only} against \textbf{Hybrid Tuning} to determine the best method for knowledge transfer.
+	\item \textbf{Data Strategy:} We assess how best to handle class imbalance by contrasting a \textbf{Class-Balanced Sampler} with a standard sampler.
+\end{itemize}
+
+The best performing configuration from these tests is then fixed as the foundation for all subsequent experiments.
+
+\subsection{Phase 2: Evaluating Diagnostic Completeness and MTTL Synergy}
+\label{ssec:exp_phase2}
+
+The second phase addresses our research question that \textit{Does an \ac{MTTL} approach provide superior efficacy and robustness compared to \ac{STL} ?} We break this down into two analyses.
+
+\paragraph{(1) Task Complexity.}  
+We progressively increase the number of detection classes to stress-test the STL paradigm. We start with \textbf{1-Class:} to detect only \emph{Infected} cells, then \textbf{2-Class:} to detect both \emph{Infected} and \emph{Healthy} cells, and finally \textbf{3-Class:} to detect \emph{Infected}, \emph{Healthy}, and \emph{WBC} cells.
+
+\paragraph{(2) MTTL Synergy.}
+We then test whether auxiliary tasks can overcome STL limitations by providing additional inductive signals. We evaluate various combinations:
+
+\begin{itemize}
+	\item \textbf{Pairwise:} Adding Segmentation (shape prior), Localization (attention prior), or RoI Classification (feature refinement) to the detector.
+	\item \textbf{Triple:} Combining two auxiliary tasks with detection (e.g., Segmentation and Localization) to merge their benefits.
+	\item \textbf{Full Combination:} Integrating all four tasks (Detection, Segmentation, Localization, RoI Classification) to create the most complete MTTL setup.
+\end{itemize}
+
+\section{Evaluation Protocol and Metrics}
+\label{sec:evaluation_protocol}
+
+Our evaluation protocol is designed to ensure fair comparison, clinical interpretability, and deep diagnostic analysis beyond simple aggregate scores.
+
+\subsection{Diagnostic Test Datasets}
+\label{ssec:diagnostic_datasets}
+We evaluate each model on three distinct, patient-disjoint test sets to profile its capabilities:
+
+\begin{enumerate}
+	\item \textbf{The Full Test Set:} Reflects the natural distribution of the original data and serves as the primary benchmark for real-world performance.
+	\item \textbf{The Infected-Only Test Set:} Contains only images from infected patients. This target-rich environment rigorously evaluates \textbf{sensitivity and recall}.
+	\item \textbf{The Healthy-Only Test Set:} Contains only images from healthy patients. This pure negative dataset evaluates \textbf{specificity and precision}, measuring the ability to avoid false positives.
+	\item \textbf{Parasitemia Quantification:} We also assess the ability to quantify disease severity on the \textbf{Full Test Set}. For each slide, parasitemia ($\mathcal{P}$) is estimated as:
+	\begin{equation}
+		\mathcal{P} = \frac{N_{\text{infected}}}{N_{\text{infected}} + N_{\text{healthy}}} \times 100\%
+		\label{eq:parsitemia_formula}
+	\end{equation}
+	where $N$ represents the predicted cell counts. Accuracy is measured against ground truth using \textbf{Mean Absolute Error (MAE)} and the \textbf{Pearson Correlation Coefficient (r)}.
+\end{enumerate}
+
+\subsection{Task-Specific Performance Metrics}
+\label{ssec:performance_metrics}
+
+\paragraph{Detection.}
+The primary metric is \textbf{\ac{mAP}} at an \ac{IoU} threshold of 0.5 (mAP@50), following PASCAL VOC standards \parencite{Everingham2010PascalVOC}. We also report class-specific \textbf{Precision}, \textbf{Recall}, and \textbf{F1-Score} at an optimal confidence threshold derived from the Precision-Recall curve \parencite{Davis2006PrecisionRecall}. The F1-Score for the \textit{Infected class} is a key performance indicator.
+
+\paragraph{RoI Classification.}
+We use the \textbf{F1-Macro} score, which is robust to class imbalance, along with overall \textbf{Accuracy}.
+
+\paragraph{Segmentation.}
+We report the \textbf{Dice Similarity Coefficient} \parencite{Dice1945Measures} and the \textbf{Intersection over Union (IoU)} on binarized output masks.
+
+\paragraph{Infection Localization.}
+This heatmap task is evaluated using the \textbf{Dice Score}, \textbf{Pearson Correlation}, and \textbf{\ac{MAE}}. On pure-negative datasets where Dice is undefined, we report the \textbf{Average Prediction Value} to measure false positive activation.
+
+\begin{table}[htbp]
+	\centering
+	\caption{Summary of Evaluation Metrics for Each Task.}
+	\label{tab:evaluation_metrics}
+	\renewcommand{\arraystretch}{1.5}
+	\begin{tabular}{p{3cm} p{10cm}}
+		\toprule
+		\textbf{Task} & \textbf{Primary Evaluation Metrics} \\
+		\midrule
+		$\mathcal{T}_{\text{det}}$ & mAP@50, Precision, Recall, F1-Score (per-class) \\
+		$\mathcal{T}_{\text{loc}}$ & Dice Score, Pearson Correlation, \acs{MAE}, \acs{MSE} \\
+		$\mathcal{T}_{\text{seg}}$ & Dice Score, Intersection over Union (IoU) \\
+		$\mathcal{T}_{\text{roi}}$ & Accuracy, F1-Macro, F1-Score (per-class) \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\section{Implementation Details and Experimental Setup}
+\label{sec:implementation_details}
+
+All experiments were conducted on the Kaggle platform (\url{https://www.kaggle.com}), utilizing its cloud-based computational resources. This section provides a detailed account of the hardware, software, and training configurations employed, ensuring that our experiments are reproducible and systematically controlled.
+
+\subsection{Hardware and Software Environment}
+\label{ssec:hardware_software}
+
+Training and evaluation of all models were performed on a Kaggle Notebook instance with the following specifications:
+
+\begin{itemize}
+	\item \textbf{Hardware:}
+	\begin{itemize}
+		\item \textbf{GPU:} Dual NVIDIA Tesla T4 GPUs, each with 16 GB of VRAM.
+		\item \textbf{CPU:} Intel Xeon processors, with 4–8 cores.
+		\item \textbf{RAM:} 30 GB of system memory.
+	\end{itemize}
+	\item \textbf{Software Environment:}
+	\begin{itemize}
+		\item \textbf{Operating System:} Debian-based Linux distribution provided by Kaggle.
+		\item \textbf{Programming Language:} Python (Version 3.11.13).
+		\item \textbf{Deep Learning Framework:} PyTorch (Version 2.6.0+cu124), with CUDA support on 2 NVIDIA Tesla T4 GPUs
+		\item \textbf{Key Scientific Libraries:} NumPy for numerical operations, Pandas for data handling, Scikit-learn for additional metric calculations, and Matplotlib, Seaborn, and Plotly for visualization. A complete list of package versions is available in the project’s dependency manifest.
+	\end{itemize}
+\end{itemize}
+
+\subsection{Training Configuration}
+\label{ssec:training_configuration}
+
+To ensure fair and controlled comparisons, all experiments followed a consistent training protocol, unless specific variables were intentionally altered.
+
+\begin{itemize}
+	\item \textbf{Random Seed and Reproducibility:} A fixed seed of 12 was used for all experiments to ensure reproducibility. This seed was applied to Python's \texttt{random} module, NumPy, and PyTorch (including CUDA operations and worker initialization). CUDNN deterministic settings were enforced and benchmark mode disabled to guarantee consistent results across runs.
+	
+	\item \textbf{Optimizer:} All experiments used the \textbf{AdamW} optimizer \parencite{loshchilov2019decoupled}, preferred over standard Adam for its improved weight decay, which often leads to better generalization.
+	\item \textbf{Learning Rate Schedule:} A \textbf{linear warm-up followed by cosine annealing} schedule was applied. The learning rate gradually increased from a low starting value to its target over the warm-up epochs, then decayed following a cosine curve. The primary learning rate for heads and adapters was set to $1 \times 10^{-3}$.
+	
+	\item \textbf{Discriminative Fine-Tuning:} For Hybrid Tuning experiments, backbone layers were unfrozen with a significantly lower learning rate to avoid catastrophic forgetting. Preliminary experiments indicated an optimal backbone learning rate of $\mathbf{1 \times 10^{-6}}$, maintaining a 1000:1 ratio with the head learning rate.
+	
+	\item \textbf{Batch Size and Gradient Accumulation:} Due to GPU memory limitations, MTTL models used a base batch size of 8. To simulate an effective batch size of 16 (comparable to STL experiments), \textbf{gradient accumulation} over 2 steps was applied.
+	
+	\item \textbf{\acf{AMP}:} PyTorch’s \textbf{AMP} was employed to accelerate training and reduce memory usage. AMP leverages 16-bit floating-point precision for selected operations while preserving 32-bit precision where necessary, ensuring numerical stability with faster computation.
+	
+	\item \textbf{Early Stopping:} To prevent overfitting and reduce computation, training was halted when the primary validation metric (e.g., mAP@50 for detection) showed no improvement for a predefined number of epochs.
+\end{itemize}
+
+\noindent With these settings, we ensure that our training process is consistent, reliable, and directly supports the experimental results that follow.

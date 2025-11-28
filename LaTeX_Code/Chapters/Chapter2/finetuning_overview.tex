@@ -1,0 +1,71 @@
+
+\begin{tikzpicture}[
+	scale=0.8, every node/.style={scale=0.8, font=\footnotesize},
+	layer_block/.style={rectangle, draw=black, minimum width=1.5cm, minimum height=0.6cm, text width=1.4cm, rounded corners=1pt, inner sep=2pt},
+	frozen/.style={layer_block, fill=blue!20, pattern=north east lines, pattern color=blue!40},
+	finetune/.style={layer_block, fill=orange!30},
+	new_head/.style={layer_block, fill=red!30}
+	]
+	\node[frozen] (leg_frozen) at (0,0) {};
+	\node[right=0.2cm of leg_frozen, anchor=west] {Frozen Layers (Pre-trained, Weights Fixed)};
+	\node[finetune] (leg_finetune) at (0,-1) {};
+	\node[right=0.2cm of leg_finetune, anchor=west] {Fine-tuned Layers (Pre-trained, Weights Updated)};
+	\node[new_head] (leg_newhead) at (0,-2) {};
+	\node[right=0.2cm of leg_newhead, anchor=west] {New Head (Trainable, From Scratch)};
+\end{tikzpicture}
+
+\vspace{0.5cm}
+
+\begin{tikzpicture}[
+	scale=0.9, every node/.style={scale=0.9, font=\small, align=center},
+	layer_block/.style={rectangle, draw=black, minimum width=1.2cm, minimum height=0.5cm, text width=1cm, rounded corners=1pt, inner sep=2pt, font=\tiny},
+	frozen/.style={layer_block, fill=blue!20, pattern=north east lines, pattern color=blue!40},
+	finetune/.style={layer_block, fill=orange!30},
+	new_head/.style={layer_block, fill=red!30, minimum width=1cm, text width=0.8cm}, 
+	io_label/.style={font=\small\bfseries, text=black!70},
+	strategy_label/.style={font=\bfseries\small, text width=3.5cm, align=center, minimum height=0.8cm},
+	arrow/.style={-Stealth, thick, shorten >=1pt, shorten <=1pt, draw=gray!80}
+	]
+	
+	\coordinate (input_pos) at (6,3.5); 
+	\coordinate (s1_col) at (0,0);    
+	\coordinate (s2_col) at (6,0);    
+	\coordinate (s3_col) at (12,0);   
+	\coordinate (output_pos) at (6,-4.5); 
+	
+	\node[io_label] (input_node) at (input_pos) {Input Image};
+	
+	\node[strategy_label] (s1_title) at ($(s1_col) + (0,1.5)$) {Feature Extraction};
+	\node[frozen] (s1_l1) at (s1_col) {L1};
+	\node[frozen, below=0.1cm of s1_l1] (s1_l2) {L2};
+	\node[frozen, below=0.1cm of s1_l2] (s1_l3) {\vdots};
+	\node[frozen, below=0.1cm of s1_l3] (s1_ln) {LN};
+	\node[new_head, below=0.2cm of s1_ln] (s1_head) {Head};
+	\draw[arrow] (s1_l1) -- (s1_l2); \draw[arrow] (s1_l2) -- (s1_l3); \draw[arrow] (s1_l3) -- (s1_ln); \draw[arrow] (s1_ln) -- (s1_head);
+	\draw[arrow] (input_node) -- (s1_l1.north);
+	\draw[arrow] (s1_head.south) -- (output_pos);
+	
+	\node[strategy_label] (s2_title) at ($(s2_col) + (0,1.5)$) {Partial Fine-tuning};
+	\node[frozen]   (s2_l1) at (s2_col) {L1};
+	\node[frozen,   below=0.1cm of s2_l1] (s2_l2) {L2};
+	\node[finetune, below=0.1cm of s2_l2] (s2_l3) {\vdots}; % Transition point
+	\node[finetune, below=0.1cm of s2_l3] (s2_ln) {LN};
+	\node[new_head, below=0.2cm of s2_ln] (s2_head) {Head};
+	\draw[arrow] (s2_l1) -- (s2_l2); \draw[arrow] (s2_l2) -- (s2_l3); \draw[arrow] (s2_l3) -- (s2_ln); \draw[arrow] (s2_ln) -- (s2_head);
+	\draw[arrow] (input_node) -- (s2_l1.north);
+	\draw[arrow] (s2_head.south) -- (output_pos);
+	
+	\node[strategy_label] (s3_title) at ($(s3_col) + (0,1.5)$) {Full Fine-tuning};
+	\node[finetune] (s3_l1) at (s3_col) {L1};
+	\node[finetune, below=0.1cm of s3_l1] (s3_l2) {L2};
+	\node[finetune, below=0.1cm of s3_l2] (s3_l3) {\vdots};
+	\node[finetune, below=0.1cm of s3_l3] (s3_ln) {LN};
+	\node[new_head, below=0.2cm of s3_ln] (s3_head) {Head};
+	\draw[arrow] (s3_l1) -- (s3_l2); \draw[arrow] (s3_l2) -- (s3_l3); \draw[arrow] (s3_l3) -- (s3_ln); \draw[arrow] (s3_ln) -- (s3_head);
+	\draw[arrow] (input_node) -- (s3_l1.north);
+	\draw[arrow] (s3_head.south) -- (output_pos);
+	
+	\node[io_label] (output_node) at (output_pos) {Target Prediction};
+	
+\end{tikzpicture}
+	

@@ -20,6 +20,7 @@ pillow==10.4.0
 
 # Object Detection & Metrics
 pycocotools==2.0.7
+ultralytics
 
 # Visualization
 matplotlib==3.7.2

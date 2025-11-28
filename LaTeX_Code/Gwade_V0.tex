@@ -1,0 +1,260 @@
+\documentclass[english,12pt,a4paper]{report}
+
+% -------------------------------
+% PAGE GEOMETRY
+% -------------------------------
+\usepackage[a4paper,tmargin=2.5cm,bmargin=2.5cm,rmargin=2cm,lmargin=2cm]{geometry}
+
+% -------------------------------
+% FONTS & TYPOGRAPHY
+% -------------------------------
+\renewcommand{\familydefault}{\rmdefault} % main text = serif
+\usepackage{mathpazo}                     % elegant serif font
+\usepackage{microtype}                    % better typography
+\usepackage{setspace}                     % for line spacing
+\setstretch{1.2}                          % slightly increased line spacing
+
+% -------------------------------
+% CHAPTER & SECTION STYLING
+% -------------------------------
+\usepackage[Lenny]{fncychap}
+\usepackage{titlesec}
+\titleformat*{\section}{\Large\bfseries\sffamily}       
+\titleformat*{\subsection}{\large\bfseries\sffamily}    
+\titleformat*{\subsubsection}{\large\bfseries\sffamily} 
+\titleformat{\chapter}[display]{\sf\bfseries\LARGE}{\vspace{-10ex}
+\filleft\MakeUppercase{\chaptertitlename}~
+\Huge\thechapter}{4ex}{\titlerule\vspace{2ex}\filright}[\vspace{2ex}\titlerule]
+
+% -------------------------------
+% HEADERS & FOOTERS
+% -------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyfoot[LE,RO]{\tiny Master of Science in Data Science and Artificial Intelligence}
+\rhead{}
+\lfoot{\footnotesize\tiny\textbf{Gwade Steve}}
+
+% -------------------------------
+% INPUT ENCODING & LANGUAGE
+% -------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{verbatim}
+\usepackage{url}
+
+% -------------------------------
+% MATH & SYMBOLS
+% -------------------------------
+\usepackage{calc,amsfonts,amssymb,amsthm,latexsym}
+\usepackage[centertags]{amsmath}
+
+% -------------------------------
+% GRAPHICS & OTHER PACKAGES
+% -------------------------------
+\usepackage{graphicx,fancybox,wrapfig,exscale,colortbl,tcolorbox,frcursive,empheq,multicol,varwidth,lipsum}
+\usepackage{pgf,tikz}
+\usetikzlibrary{arrows,calc}
+\usepackage{eso-pic,bclogo}
+\usepackage[all]{xy}
+
+% -------------------------------
+% HYPERLINKS
+% -------------------------------
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=blue,
+    urlcolor=blue,
+    filecolor=blue,
+    pdfauthor={Gwade Steve},
+    pdftitle={Multi-Task Transfer Learning – Malaria Detection}
+}
+
+% -------------------------------
+% THEOREMS
+% -------------------------------
+\newtheorem{exo}{{Exercice}}[chapter]
+\newtheorem{remark}{{Remarque}}[chapter]
+\newtheorem{definition}{Définition}[chapter]
+\newtheorem{example}{{Exemple}}[chapter]
+
+% -------------------------------
+% DOCUMENT START
+% -------------------------------
+\begin{document}
+
+% -------------------------------
+% TITLE PAGE
+% -------------------------------
+\begin{titlepage}
+\centering
+\fontfamily{lmss}\selectfont % Sans-serif for cover
+\begin{minipage}{0.45\linewidth} 
+    \raggedright 
+    \includegraphics[height=2.8cm]{Logos/UD.png}
+\end{minipage} \hfill 
+\begin{minipage}{0.45\linewidth} 
+    \raggedleft 
+    \includegraphics[height=2.8cm]{Logos/ENSPD LOGO.jpeg}
+\end{minipage}
+
+\vspace{-3cm}
+{\scriptsize
+\begin{center}
+\textbf{REPUBLIC OF CAMEROON} \\
+Peace – Work – Fatherland \\
+\textcolor{gray}{$\diamond\diamond\diamond\diamond\diamond$} \\
+\textbf{MINISTRY OF HIGHER EDUCATION} \\
+\textcolor{gray}{$\diamond\diamond\diamond\diamond\diamond$} \\
+\textbf{THE UNIVERSITY OF DOUALA} \\
+\textcolor{gray}{$\diamond\diamond\diamond\diamond\diamond$} \\
+\textbf{National Higher Polytechnic School of Douala (ENSPD)}
+\end{center}
+}
+
+\vspace{1.2cm}
+{\large Department of Computer Engineering}\\
+\vspace{0.1cm}
+{\large Laboratory of Data Science and Artificial Intelligence (LSDIA)}\\
+
+\vspace{1.2cm}
+\rule{\linewidth}{1.2pt}\\[0.6cm]
+{\Huge \bfseries Multi-Task Transfer Learning}\\[0.3cm]
+{\LARGE And Application to Malaria Detection}\\[0.6cm]
+\rule{\linewidth}{1.2pt}\\
+
+\vspace{1.2cm}
+{\Large \textbf{Gwade Steve}}\\
+
+\vspace{1.2cm}
+{\large Submitted in partial fulfillment of the requirements}\\
+{\large for the degree of}\\[0.8cm]
+
+{\Large \textbf{Master of Science}}\\
+\vspace{0.1cm}
+{\large in Data Science and Artificial Intelligence}\\
+
+\vspace{0.25cm}
+\begin{center}
+\textbf{Supervised by:} \\
+Prof. Dr. habil. P. Njionou Sadjang \\[0.4cm]
+\textbf{Co-supervised by:} \\
+Dr. Armielle Noulapeu
+\end{center}
+
+\vfill
+{\large National Higher Polytechnic School of Douala}\\
+{\large University of Douala, Cameroon}\\[0.5cm]
+{\large July 2025}
+\end{titlepage}
+
+% -------------------------------
+% DECLARATION
+% -------------------------------
+\chapter*{Declaration}
+\thispagestyle{empty}
+\noindent I, \textbf{Gwade Steve}, hereby solemnly declare that this Master’s thesis entitled \textit{“Multi-Task Transfer Learning and Application to Malaria Detection”} is the result of my own research and investigations carried out under the guidance and supervision of Prof. Dr. habil. P. Njionou Sadjang and Dr. Armielle Noulapeu at the National Higher Polytechnic School of Douala (NHPSD), University of Douala, Cameroon.
+
+\vspace{0.5cm}
+\noindent I declare that, to the best of my knowledge, this work has not been submitted, either in whole or in part, for any other degree, diploma, or certification at any other academic institution.
+
+\vspace{0.5cm}
+\noindent I further declare that all sources of information, ideas, and data used in this thesis have been fully acknowledged. Any contributions from other researchers, authors, or institutions are clearly referenced in accordance with academic conventions.
+
+\vspace{0.5cm}
+\noindent I accept full responsibility for the integrity and authenticity of the research and the results presented herein. I affirm that any errors or omissions are entirely my own and do not reflect the work of my supervisors or any other individual.
+
+\vspace{2cm}
+\begin{flushright}
+\begin{tabular}{l}
+Signed: \underline{\hspace{8cm}} \\[0.8cm]
+Date: \underline{\hspace{8cm}} \\[0.8cm]
+Place: \underline{\hspace{8cm}}
+\end{tabular}
+\end{flushright}
+
+% -------------------------------
+% ABSTRACT & ACKNOWLEDGMENTS
+% -------------------------------
+\newpage
+\thispagestyle{empty}
+\begin{center}\textbf{\LARGE Abstract}\end{center}
+\noindent A concise summary of the research, including objectives, methodology, key findings, and significance. I will focus on how Multi-Task Transfer Learning (MTTL) enhances malaria diagnosis.
+
+\newpage
+\thispagestyle{empty}
+\begin{center}\textbf{\LARGE Acknowledgments}\end{center}
+\noindent Expressions of gratitude to advisors, colleagues, and anyone who contributed to the research.
+
+\tableofcontents
+
+% -------------------------------
+% CHAPTERS
+% -------------------------------
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+\section{Overview}
+Brief introduction to malaria diagnosis challenges and how MTTL can enhance accuracy.
+\section{Objectives and Research Questions}
+Clearly definition of the research goals, performance improvement, adaptability in low-resource settings, model generalization, etc.
+\section{Contributions}
+Summary of key contributions, including novel methodologies, improved model efficiency, and practical applications.
+
+\chapter{The Malaria Disease}
+\lipsum[1-3]
+\section{Biological Background}
+Malaria causes, transmission, and its global impact.
+\section{Clinical Diagnosis of Malaria}
+Current diagnostic methods, limitations, and challenges.
+\section{Malaria Diagnosis as a Multi-Task Learning Problem}
+Justification for treating malaria diagnosis as multiple related tasks (e.g., parasite detection, species classification, severity grading).
+
+\chapter{Review of Machine Learning Techniques for Malaria Diagnosis}
+\section{Machine Learning in Medical Image Analysis}
+Overview of AI in medical image analysis, focusing on malaria detection.
+\section{Existing AI-Based Malaria Diagnostic Systems}
+Review of prior studies, highlighting successes and limitations.
+\section{Challenges in Existing Approaches}
+Identifying gaps in traditional AI models, such as data scarcity and generalization issues.
+\section{Bridging the Gap with MTTL}
+How MTTL mitigates these challenges by leveraging knowledge transfer across related tasks.
+
+\chapter{Transfer Learning and Multi-Task Transfer Learning}
+\section{Foundations of Transfer Learning}
+Key principles and applications in medical imaging.
+\section{Mathematical Foundations of Multi-Task Learning}
+Detailed breakdown of optimization strategies, loss functions, and task-sharing mechanisms.
+\section{Multi-Task Transfer Learning (MTTL) – Novel Approach}
+Introduction to our innovative MTTL model for malaria diagnosis, including adaptive task weighting and improved feature extraction.
+
+\chapter{Implementation and Applications}
+\section{Dataset Preparation}
+Data sources, preprocessing steps.
+\section{MTTL Model Architecture}
+Design choices, including neural network layers and shared-specific task configurations.
+\section{Training Strategies}
+Optimization techniques, loss functions, and hyperparameter tuning.
+\section{Evaluation Metrics and Results}
+Performance assessment using accuracy, precision-recall curves, and confusion matrices.
+\section{Comparison with Single-Task Models}
+Empirical validation against conventional models, showing the advantages of MTTL.
+\section{Explainability and Trustworthiness}
+Methods for model interpretability (Grad-CAM, SHAP values) to ensure reliability in medical decision-making.
+
+\chapter*{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion}
+\section{Summary of Findings}
+Recap of research insights and major takeaways.
+\section{Future Directions}
+Potential improvements, real-world deployment considerations, and ethical implications.
+
+\appendix
+\chapter{Appendices}
+Supporting materials, additional experimental details, or supplementary figures.
+
+\chapter{References}
+Citing all relevant research papers, books, and sources.
+
+\end{document}

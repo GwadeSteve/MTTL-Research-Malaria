@@ -1,0 +1,21 @@
+\contentsline {myequations}{\numberline {1.1}Iterative Layer Transformation}{5}{equation.1.1}%
+\contentsline {myequations}{\numberline {1.2}Deep Network Composite Function}{5}{equation.1.2}%
+\contentsline {myequations}{\numberline {1.3}LoRa Update equation.}{13}{equation.1.3}%
+\contentsline {myequations}{\numberline {1.4}Multitask Learning optimization formulation.}{14}{equation.1.4}%
+\contentsline {myequations}{\numberline {2.1}Domain Definition.}{20}{equation.2.1}%
+\contentsline {myequations}{\numberline {2.2}Task Definition.}{20}{equation.2.2}%
+\contentsline {myequations}{\numberline {2.3}Model Decomposition.}{20}{equation.2.3}%
+\contentsline {myequations}{\numberline {2.4}Empirical Risk Minimization.}{20}{equation.2.4}%
+\contentsline {myequations}{\numberline {2.5}STL Optimization Objective.}{21}{equation.2.5}%
+\contentsline {myequations}{\numberline {2.6}Transfer Learning Optimization Objective.}{21}{equation.2.6}%
+\contentsline {myequations}{\numberline {2.7}Multi-task Learning Optimization Objective.}{21}{equation.2.7}%
+\contentsline {myequations}{\numberline {2.8}Source Backbone Parameter Extraction.}{22}{equation.2.8}%
+\contentsline {myequations}{\numberline {2.9}MTTL Master Objective Function.}{22}{equation.2.9}%
+\contentsline {myequations}{\numberline {2.10}MTTL Objective with Uncertainty Weighting.}{24}{equation.2.10}%
+\contentsline {myequations}{\numberline {3.3}Instantiated MTTL Objective.}{26}{equation.3.3}%
+\contentsline {myequations}{\numberline {3.5}Total Multi-Class Detection Loss.}{27}{equation.3.5}%
+\contentsline {myequations}{\numberline {3.6}Smooth L1 Loss component.}{29}{equation.3.6}%
+\contentsline {myequations}{\numberline {3.7}Cell Segmentation Loss.}{29}{equation.3.7}%
+\contentsline {myequations}{\numberline {3.8}Infection Localization Loss.}{29}{equation.3.8}%
+\contentsline {myequations}{\numberline {3.9}RoI Classification Loss.}{29}{equation.3.9}%
+\contentsline {myequations}{\numberline {4.1}Performance gain formula.}{44}{equation.4.1}%
