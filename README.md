@@ -356,7 +356,7 @@ device = torch.device('cpu')
 # Consider using smaller models or fewer epochs for prototyping
 ```
 
-# Citation
+# Citation 
 
 If you use this code or find the research helpful, please star ⭐ the repo and cite:
 
