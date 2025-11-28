@@ -1,0 +1,677 @@
+\chapter{Results and Discussion}
+\label{chap:results}
+
+This chapter presents the empirical results of our Multi-Task Transfer Learning (MTTL) study for malaria detection. We first establish strong Single-Task Learning (STL) baselines and track how their performance changes as the diagnostic setup becomes more complex. We then report the results of our MTTL models, analyze the role of each auxiliary task, and evaluate the best configurations through quantitative metrics and visual examples. Extended results and full training details are provided in the Appendices.
+
+\section{Single-Task Learning Detection Baselines}
+\label{sec:optimal_stl_recipe}
+
+To build reliable STL baselines, we evaluated detection in 1, 2, and 3 classes using four fine-tuning setups: LoRA-Only and Hybrid Tuning, each tested with and without a sampler. This provides a solid reference point for comparing STL performance with our MTTL approach.
+
+\begin{table}[htbp]
+	\centering
+	\caption{1-Class Detection Baselines (Ranked by F1(Inf)) }
+	\label{tab:stl_1class}
+	\begin{tabular}{lcccccc}
+		\toprule
+		\textbf{Run} & \textbf{mAP@50} & \textbf{mAP@75} & \textbf{F1(Inf)} & \textbf{R(Inf)} & \textbf{P(Inf)} \\
+		\midrule
+		STL\_Det\_1cls\_Hybrid\_NoSampler & \textbf{0.8260} & 0.5020 & \textbf{0.8182} & \textbf{0.8146} & \textbf{0.8218} \\
+		STL\_Det\_1cls\_LoRA\_WithSampler & 0.8012 & 0.4930 & 0.8007 & 0.7991 & 0.8023 \\
+		STL\_Det\_1cls\_Hybrid\_WithSampler & 0.8201 & 0.4865 & 0.7994 & 0.8011 & 0.7978 \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+	\centering
+	\caption{2-Class Detection Baselines (Ranked by F1(Inf)) }
+	\label{tab:stl_2class}
+	\begin{tabular}{lcccccc}
+		\toprule
+		\textbf{Run} & \textbf{mAP@50} & \textbf{mAP@75} & \textbf{F1(Inf)} & \textbf{R(Inf)} & \textbf{P(Inf)} \\
+		\midrule
+		STL\_Det\_2cls\_Hybrid\_WithSampler & \textbf{0.5834} & \textbf{0.4144} & \textbf{0.5990} & \textbf{0.4631} & \textbf{0.8478} \\
+		STL\_Det\_2cls\_LoRA\_WithSampler & 0.4442 & 0.2628 & 0.3043 & 0.1847 & 0.8642 \\
+		STL\_Det\_2cls\_Hybrid\_NoSampler & 0.3457 & 0.1965 & 0.0000 & 0.0000 & 0.0000 \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+	\centering
+	\caption{3-Class Detection Baselines (Ranked by F1(Inf)) }
+	\label{tab:stl_3class}
+	\begin{tabular}{lcccccc}
+		\toprule
+		\textbf{Run} & \textbf{mAP@50} & \textbf{mAP@75} & \textbf{F1(Inf)} & \textbf{R(Inf)} & \textbf{P(Inf)} \\
+		\midrule
+		STL\_Det\_3cls\_LoRA\_WithSampler & \textbf{0.3341} & \textbf{0.2304} & \textbf{0.3791} & \textbf{0.2533} & \textbf{0.7529} \\
+		STL\_Det\_3cls\_Hybrid\_WithSampler & 0.3191 & 0.1802 & 0.0401 & 0.0205 & 0.7273 \\
+		STL\_Det\_3cls\_Hybrid\_NoSampler & 0.2145 & 0.1262 & 0.0000 & 0.0000 & 0.0000 \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\noindent  
+\textbf{Observations:} Ranking by the infected-cell F1 score shows that the best STL setup changes with task complexity. Hybrid without a sampler works best for 1-class detection, Hybrid with a sampler for 2 classes, and LoRA-Only with a sampler for 3 classes, where it offers the most stable training. STL delivers strong specialists, but performance drops quickly as more classes are introduced. The best 3-class configuration, LoRA-Only with a sampler, serves as the main reference for MTTL comparisons.
+
+\section{Evaluating STL Baselines and Their Limitations}
+\label{sec:stl_baselines_and_limits}
+
+\subsection{STL Baseline Performance Across All Diagnostic Tasks}
+\label{ssec:stl_all_tasks}
+We first trained specialist models for each task using the best STL settings. The results in Tables~\ref{tab:stl_baselines_full_det}--\ref{tab:stl_baselines_rest} give the reference performance for single-task approaches on this dataset. Figures \ref{fig:stl_dynamics_row1} through \ref{fig:stl_dynamics_row4} illustrates the stable training dynamics of these models.
+
+\begin{table}[htbp]
+	\centering
+	\caption{STL baseline performance for Detection.}
+	\label{tab:stl_baselines_full_det}
+	\renewcommand{\arraystretch}{1.25}
+	\begin{tabular}{lcccccc}
+		\toprule
+		\textbf{Task} & \textbf{mAP@50} & \textbf{mAP@75} & \textbf{F1(Inf)} & \textbf{F1-Macro} & \textbf{P-Macro} & \textbf{R-Macro} \\
+		\midrule
+		1-Class & \textbf{0.8260} & \textbf{0.502} & \textbf{0.8182} & 0.8182 & 0.8218 & 0.8146 \\
+		2-Class & 0.5834 & 0.4144 & 0.5990 & \textbf{0.9274} & \textbf{0.9742} & \textbf{0.8848} \\
+		3-Class & 0.3341 & 0.2304 & 0.3791 & 0.8977 & 0.9517 & 0.8496 \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+	\centering
+	\caption{STL baseline performance across tasks.}
+	\label{tab:stl_baselines_rest}
+	\begin{tabular}{lcccccc}
+		\toprule
+		\textbf{Task} & \textbf{Dice} & \textbf{IoU} & \textbf{Pearson} & \textbf{MAE} & \textbf{F1-Macro} & \textbf{Accuracy} \\
+		\midrule
+		Segmentation & 0.9656 & 0.9468 & -- & --  & --   & --    \\
+		Heatmap Localization & 0.5422 & --  & 0.7866 & 0.9719 & -- & --     \\
+		ROI Classification (2-Class) & -- & -- & -- & -- & 0.9029 & 0.9859 \\
+		ROI Classification (3-Class) & -- & -- & --  & --   & 0.8047 & 0.9373 \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\noindent  
+\textbf{Observations:} Segmentation, Localization Heatmap and RoI Classification STL models perform very well when each task is learned on its own. Detection on the other hand reaches strong infected-cell scores in the one-class case, but performance decreases as the number of classes grows. The high F1-Macro values in multi-class detection reflect the prevalence of the healthy class. This suggests that STL works for focused tasks but becomes less reliable as diagnostic complexity increases.
+
+\subsection{Training Dynamics of STL Models}
+Figures \ref{fig:stl_dynamics_row1} to \ref{fig:stl_dynamics_row4} show the training and validation curves for the best STL models in each task. The losses and main validation metrics evolve smoothly, indicating stable training and no signs of overfitting. This supports the reliability of the baseline results reported above.
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/STL_detection_1cls_curves.png}
+		\caption{Detection (1-Class)}
+		\label{fig:dyn_det1}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/STL_detection_2cls_curves.png}
+		\caption{Detection (2-Class)}
+		\label{fig:dyn_det2}
+	\end{subfigure}
+	\caption{Training dynamics for 1-Class and 2-Class optimal STL detection models.}
+	\label{fig:stl_dynamics_row1}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/STL_detection_3cls_curves.png}
+		\caption{Detection (3-Class)}
+		\label{fig:dyn_det3}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/STL_roi_classif_2cls_curves.png}
+		\caption{RoI Classification (2-Class)}
+		\label{fig:dyn_roi2}
+	\end{subfigure}
+	\caption{Training dynamics for 3-Class detection and 2-Class RoI classification models.}
+	\label{fig:stl_dynamics_row2}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/STL_roi_classif_3cls_curves.png}
+		\caption{RoI Classification (3-Class)}
+		\label{fig:dyn_roi3}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/STL_segmentation_3cls_curves.png}
+		\caption{Segmentation}
+		\label{fig:dyn_seg}
+	\end{subfigure}
+	\caption{Training dynamics for 3-Class RoI classification and Segmentation models.}
+	\label{fig:stl_dynamics_row3}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/STL_heatmap_3cls_curves.png}
+		\caption{Heatmap Localization}
+		\label{fig:dyn_heat}
+	\end{subfigure}
+	\caption{Training dynamics for the Heatmap Localization model.}
+	\label{fig:stl_dynamics_row4}
+\end{figure}
+
+\subsection{STL Performance Under Increasing Complexity}
+\label{ssec:stl_degradation}
+
+A key finding from our baseline analysis is the STL detector's inability to scale with increasing diagnostic complexity. As shown in Figure~\ref{fig:stl_collapse_viz}, F1-Score (Infected class), mAP@50 and mAP@75 show substantial performance drops as the model is required to distinguish between more cell classes.
+
+\begin{figure}[htbp] 
+	\centering 
+	\begin{tikzpicture} 
+		\begin{axis}[ 
+			name=mainplot,
+			width=0.75\textwidth, 
+			height=8.5cm, 
+			ymin=0, ymax=1.0, 
+			ylabel={Performance Score}, 
+			ylabel style={font=\bfseries\Large}, 
+			xlabel={Task Complexity}, 
+			xlabel style={font=\bfseries\Large}, 
+			symbolic x coords={1-Class, 2-Class, 3-Class}, 
+			xtick=data, 
+			x tick label style={font=\normalsize\bfseries}, 
+			ymajorgrids=true, 
+			grid style={dotted, gray!20}, 
+			enlarge x limits=0.3, 
+			bar width=12pt,
+			yticklabel style={/pgf/number format/fixed, /pgf/number format/precision=2}
+			] 
+			
+			\fill[green!6, opacity=0.25] 
+			(axis cs:1-Class,0.7) rectangle (axis cs:3-Class,1.0);
+			\node[font=\scriptsize, text=green!60!black, anchor=south east] 
+			at (axis cs:3-Class,0.98) {High Performance};
+			
+			\fill[yellow!8, opacity=0.25] 
+			(axis cs:1-Class,0.4) rectangle (axis cs:3-Class,0.7);
+			\node[font=\scriptsize, text=orange!65!black, anchor=east] 
+			at (axis cs:3-Class,0.55) {Moderate};
+			
+			\fill[red!6, opacity=0.25] 
+			(axis cs:1-Class,0.0) rectangle (axis cs:3-Class,0.4);
+			\node[font=\scriptsize, text=red!65!black, anchor=north east] 
+			at (axis cs:3-Class,0.02) {Critical Zone};
+			
+			\addplot[ybar, bar shift=-14pt, fill=blue!65, draw=blue!80!black, line width=0.7pt] 
+			coordinates {(1-Class,0.8260) (2-Class,0.5834) (3-Class,0.3341)}; 
+			
+			\addplot[ybar, bar shift=0pt, fill=teal!55, draw=teal!75!black, line width=0.7pt] 
+			coordinates {(1-Class,0.5020) (2-Class,0.4144) (3-Class,0.2304)}; 
+			
+			\addplot[ybar, bar shift=14pt, fill=orange!70, draw=orange!85!black, line width=0.7pt] 
+			coordinates {(1-Class,0.8182) (2-Class,0.5990) (3-Class,0.3791)}; 
+			
+			\addplot[red!75!black, ultra thick, mark=square*, mark size=4pt, 
+			mark options={fill=red!75!black}] 
+			coordinates {(1-Class,0.8182) (2-Class,0.5990) (3-Class,0.3791)}; 
+			
+			\addplot[blue!70, thick, dashed, mark=*, mark size=3pt, 
+			mark options={fill=blue!70}] 
+			coordinates {(1-Class,0.8260) (2-Class,0.5834) (3-Class,0.3341)}; 
+			
+			\node[font=\tiny\bfseries, above=2pt, text=blue!90!black] 
+			at (axis cs:1-Class,0.8260) [xshift=-14pt] {0.83};
+			\node[font=\tiny\bfseries, above=2pt, text=teal!90!black] 
+			at (axis cs:1-Class,0.5020) {0.50};
+			\node[font=\tiny\bfseries, above=2pt, text=orange!90!black] 
+			at (axis cs:1-Class,0.8182) [xshift=14pt] {0.82};
+			
+			\node[font=\tiny\bfseries, above=2pt, text=blue!90!black] 
+			at (axis cs:2-Class,0.5834) [xshift=-14pt] {0.58};
+			\node[font=\tiny\bfseries, above=2pt, text=teal!90!black] 
+			at (axis cs:2-Class,0.4144) {0.41};
+			\node[font=\tiny\bfseries, above=2pt, text=orange!90!black] 
+			at (axis cs:2-Class,0.5990) [xshift=14pt] {0.60};
+			
+			\node[font=\tiny\bfseries, above=2pt, text=blue!90!black] 
+			at (axis cs:3-Class,0.3341) [xshift=-14pt] {0.33};
+			\node[font=\tiny\bfseries, above=2pt, text=teal!90!black] 
+			at (axis cs:3-Class,0.2304) {0.23};
+			\node[font=\tiny\bfseries, above=2pt, text=orange!90!black] 
+			at (axis cs:3-Class,0.3791) [xshift=14pt] {0.38};
+			 
+			\draw[red!75!black, very thick, -stealth] 
+			(axis cs:1-Class,0.92) -- (axis cs:3-Class,0.44) 
+			node[midway, above=1pt, sloped, font=\footnotesize\bfseries, 
+			text=red!75!black, fill=white, inner sep=2pt, opacity=0.95, rounded corners=1pt] 
+			{$-54\%$ Degradation}; 
+			
+		\end{axis} 
+		
+		\node[right=0.5cm of mainplot.east, anchor=west, align=left, font=\small] (legend) {
+			\textbf{Metrics:}\\[4pt]
+			\tikz\draw[fill=blue!65, draw=blue!80!black, line width=0.7pt] (0,0) rectangle (0.3,0.15); \, mAP@50\\[2pt]
+			\tikz\draw[fill=teal!55, draw=teal!75!black, line width=0.7pt] (0,0) rectangle (0.3,0.15); \, mAP@75\\[2pt]
+			\tikz\draw[fill=orange!70, draw=orange!85!black, line width=0.7pt] (0,0) rectangle (0.3,0.15); \, F1-Score\\[6pt]
+			\textbf{Trends:}\\[4pt]
+			\tikz\draw[red!75!black, ultra thick, mark=square*] (0,0.075) -- (0.3,0.075); \, F1 Trend\\[2pt]
+			\tikz\draw[blue!70, thick, dashed, mark=*] (0,0.075) -- (0.3,0.075); \, mAP@50
+		};
+		
+	\end{tikzpicture} 
+	
+	\caption{STL detector performance degrades with complexity.} 
+	\label{fig:stl_collapse_viz} 
+\end{figure}
+
+\noindent
+\textbf{Observations:} As detection moves from 1 to 3 classes, the F1 score on the infected class drops noticeably, showing how STL struggles to keep focus on the rare but clinically important class. The high F1-Macro values in the multi-class setup mostly reflect the model’s confidence on the dominant uninfected class, which remains easy to learn. STL therefore performs well in simple, focused settings but becomes less reliable once the diagnostic problem gains complexity. This motivates the move toward a multi-task transfer learning approach that can handle richer and more realistic conditions.
+
+\section{MTTL Performance and Synergy Analysis}
+\label{sec:mttl_performance}
+We now turn to our central hypothesis that a multi-task model, guided by auxiliary supervision, should counter the degradation observed in STL as detection becomes more complex. All experiments in this section use Hybrid Tuning without a sampler, since class imbalance is mild in the 1-Class setting and sampling does not bring meaningful benefits. We then assess the effect of adding segmentation (Seg), ROI classification (RoI) and heatmap localization (Loc) as auxiliary tasks. To measure how much each task contributes, we report both the raw F1-score on the infected class and the relative gain over the STL baseline for the same class configuration. For a metric \(X\), this gain is defined as:
+
+\begin{equation}
+	\label{eq:mttl_delta_gain}
+	\Delta X(\%) = 
+	\frac{X_{\text{MTTL}} - X_{\text{STL}}}{X_{\text{STL}}} \times 100\\
+	\myequations{Performance gain formula.}
+\end{equation}
+
+\noindent A positive \(\Delta\) indicates improvement, whereas a negative \(\Delta\) reflects a decline. Tables~\ref{tab:mttl_1_class}–\ref{tab:mttl_3_class} present these values for the top STL baselines alongside the MTTL models for each modality.
+
+\begin{table}[htbp]
+	\centering
+	\caption{MTTL experiments results for \textbf{1-Class Detection}.}
+	\label{tab:mttl_1_class}
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{lYYYYYY}
+		\toprule
+		\textbf{Task(s)} & \textbf{mAP@50} & \textbf{mAP@75} & \textbf{F1(Inf)} & \textbf{R(Inf)} & \textbf{P(Inf)} & \textbf{$\Delta$F1(Inf)} \\
+		\midrule
+			\textit{STL 1-Class Baseline } & \textbf{0.8260} & \textbf{0.5020} & \textbf{0.8182} & \textbf{0.8218} & \textbf{0.8146} & -- \\
+		\addlinespace
+		\addlinespace
+		+Seg & 0.7885 & 0.6067 & 0.7654 & 0.6953 & 0.8514 & -6.45\% \\
+		+Seg+Loc & 0.7709 & 0.5805 & 0.7497 & 0.7388 & 0.7609 & -8.38\% \\
+		+Loc & 0.7367 & 0.5363 & 0.7285 & 0.7098 & 0.7483 & -10.96\% \\
+		\bottomrule
+	\end{tabularx}
+\end{table}
+
+\begin{table}[htbp]
+	\centering
+	\caption{MTTL experiments results for \textbf{2-Class Detection}.}
+	\label{tab:mttl_2_class}
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{lYYYYYYY}
+		\toprule
+		\textbf{Task(s)} & \textbf{mAP@50} & \textbf{mAP@75} & \textbf{F1(Inf)} & \textbf{F1-M} & \textbf{Prec-M} & \textbf{Rec-M} & \textbf{$\Delta$F1(Inf)} \\
+		\midrule
+		\textit{STL 2-Class Baseline} & 0.5834 & 0.4144 & 0.5990 & 0.9274 & 0.9742 & 0.8848 & -- \\
+		\addlinespace
+		\addlinespace
+		+RoI & \textbf{0.6452} & \textbf{0.4588} & \textbf{0.7810} & \textbf{0.9411} & 0.9761 & \textbf{0.9085} & \textbf{+30.38\%} \\
+		+Seg & 0.6281 & 0.4462 & 0.7464 & 0.9330 & 0.9734 & 0.8959 & +24.60\% \\
+		+Loc & 0.6398 & 0.4562 & 0.7415 & 0.9282 & 0.9737 & 0.8867 & +23.80\% \\
+		\addlinespace
+		\addlinespace
+		+Seg+RoI & 0.6113 & 0.3851 & 0.6976 & 0.9256 & \textbf{0.9785} & 0.8780 & +16.46\% \\
+		+Seg+Loc & 0.6025 & 0.4203 & 0.6120 & 0.9025 & 0.9550 & 0.8555 & +2.17\% \\
+		+RoI+Loc & 0.5958 & 0.4180 & 0.6065 & 0.8958 & 0.9492 & 0.8481 & +1.25\% \\
+		\addlinespace
+		\addlinespace
+		+Seg+RoI+Loc & 0.5872 & 0.4091 & 0.6030 & 0.8897 & 0.9453 & 0.8402 & +0.67\% \\
+		\bottomrule
+	\end{tabularx}
+\end{table}
+
+\begin{table}[htbp]
+	\centering
+	\caption{MTTL experiments results for \textbf{3-Class Detection}.}
+	\label{tab:mttl_3_class}
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{lYYYYYYY}
+		\toprule
+		\textbf{Task(s)} & \textbf{mAP@50} & \textbf{mAP@75} & \textbf{F1(Inf)} & \textbf{F1-M} & \textbf{Prec-M} & \textbf{Rec-M} & \textbf{$\Delta$F1(Inf)} \\
+		\midrule
+		\textit{STL 3-Class Baseline} & 0.3341 & 0.2304 & 0.3791 & 0.8977 & 0.9517 & 0.8496 & -- \\
+		\addlinespace
+		\addlinespace
+		+Seg & 0.7013 & 0.5543 & 0.7230 & 0.9351 & 0.9780 & 0.8958 & +90.74\% \\
+		+Loc & 0.6994 & 0.5217 & 0.7034 & 0.9195 & 0.9595 & 0.8827 & +85.55\% \\
+		+RoI & \textbf{0.7402} & 0.5475 & \textbf{0.7710} & \textbf{0.9409} & 0.9739 & \textbf{0.9101} & \textbf{+103.39\%} \\
+		\addlinespace
+		\addlinespace
+		+Seg+RoI & 0.7089 & 0.4375 & 0.6662 & 0.9289 & 0.9729 & 0.8888 & +75.73\% \\
+		+Loc+RoI & 0.7289 & 0.5128 & 0.6722 & 0.9375 & \textbf{0.9803} & 0.8983 & +77.32\% \\
+		+Seg+Loc & 0.6913 & 0.4853 & 0.5468 & 0.9362 & 0.9739 & 0.9013 & +44.24\% \\
+		\addlinespace
+		\addlinespace
+		+Seg+RoI+Loc & 0.7324 & \textbf{0.5538} & 0.7360 & 0.9364 & 0.9761 & 0.8997 & +94.15\% \\
+		\bottomrule
+	\end{tabularx}
+\end{table} 
+
+\subsection{Analysis of MTTL Synergy}
+\label{ssec:mttl_synergy_analysis}
+
+Our experiments results provide evidence for our central hypothesis that auxiliary tasks, while sometimes detrimental to highly specialized single-task models, become increasingly beneficial as the complexity of the primary task grows.The benefits provided by auxiliary tasks depends on the complexity of the primary detection problem. As the task becomes more nuanced, auxiliary supervision can provide meaningful guidance, though the choice and combination of tasks.\\
+
+\noindent For \textbf{1-Class Detection}, adding auxiliary tasks consistently hurts performance. The STL baseline dominates, and all MTTL variants show relative F1(Inf) drops from 6\% to 11\%. The task is simple enough that extra objectives introduce interference rather than useful signal. In this case, dedicating the model solely to detecting infected cells is most effective.\\
+
+\noindent For \textbf{2-Class Detection}, auxiliary tasks begin to provide clear gains. RoI Classification is the most synergistic, giving +30.38\% in F1(Inf), likely due to its region level feature refinement aiding distinction between infected and healthy cells. Segmentation and Localization also help, with +24.60\% and +23.80\% gains, respectively, showing moderate complementary effects. When multiple tasks are combined, the benefits diminish, +Seg+RoI drops to +16.46\%, and combinations like +Seg+Loc or +RoI+Loc give only +2.17\% and +1.25\%, while the full three-task setup barely improves (+0.67\%). This suggests that a few well chosen auxiliary tasks are synergistic, adding too many can create conflicts, possibly due to competing gradients or overlapping supervision signals.\\
+
+\noindent For \textbf{3-Class Detection}, auxiliary supervision provides the largest advantage. All MTTL variants outperform the weak STL baseline, with relative F1(Inf) improvements from +44\% to +103\%. RoI Classification leads (+103.39\%), followed by Segmentation (+90.74\%) and Localization (+85.55\%), each contributing complementary strengths: RoI refines local discriminative features, Segmentation provides structural guidance, and Localization helps with spatial attention. Paired combinations like Seg+RoI (+75.73\%) and Loc+RoI (+77.32\%) remain strong, whereas Seg+Loc (+44.24\%) shows weaker synergy, suggesting overlap in the signals they provide. The full three-task configuration recovers to +94.15\%, indicating that RoI stabilizes the learning when combined with multiple auxiliaries. Overall, Segmentation and RoI are the most consistently synergistic, while Localization is helpful but can conflict when stacked with multiple tasks. 
+
+\subsection{Training Dynamics for Top MTTL Models}
+We illustrate the training dynamics of the best-performing MTTL models for each detection category \autoref{fig:mttl_dynamics_1cls} to \autoref{fig:mttl_dynamics_3cls}. Plots correspond to loss curves, detection metrics, and auxiliary metrics.
+
+\begin{figure*}[htbp]
+	\centering
+	\begin{subfigure}{0.32\textwidth}
+		\includegraphics[width=\linewidth]{figures/MTTL_Det_1cls__Seg_Sampler_LossCurves.png}
+		\caption{Loss}
+	\end{subfigure}
+	\begin{subfigure}{0.32\textwidth}
+		\includegraphics[width=\linewidth]{figures/MTTL_Det_1cls__Seg_Sampler_Metrics_Detection.png}
+		\caption{Detection}
+	\end{subfigure}	
+	\begin{subfigure}{0.32\textwidth}
+		\includegraphics[width=\linewidth]{figures/MTTL_Det_1cls__Seg_Sampler_Metrics_Segmentation.png}
+		\caption{Heatmap}
+	\end{subfigure}
+	
+	\caption{Best 1-Class Detection MTTL model (+Seg, F1=0.7654).}
+	\label{fig:mttl_dynamics_1cls}
+\end{figure*}
+
+\begin{figure*}[htbp]
+	\centering
+	\begin{subfigure}{0.32\textwidth}
+		\includegraphics[width=\linewidth]{figures/MTTL_Det_2cls__ROI_NoSampler_LossCurves.png}
+		\caption{Loss}
+	\end{subfigure}
+	\begin{subfigure}{0.32\textwidth}
+		\includegraphics[width=\linewidth]{figures/MTTL_Det_2cls__ROI_NoSampler_Metrics_Detection.png}
+		\caption{Detection}
+	\end{subfigure}
+	\begin{subfigure}{0.32\textwidth}
+		\includegraphics[width=\linewidth]{figures/MTTL_Det_2cls__ROI_NoSampler_Metrics_Roi_classif.png}
+		\caption{ROI Classification}
+	\end{subfigure}
+	
+	\caption{Best 2-Class Detection MTTL model (+RoI, F1=0.7810).}
+	\label{fig:mttl_dynamics_2cls}
+\end{figure*}
+
+\begin{figure*}[htbp]
+	\centering
+	\begin{subfigure}{0.32\textwidth}
+		\includegraphics[width=\linewidth]{figures/MTTL_Det_3cls__ROI_NoSampler_LossCurves.png}
+		\caption{Loss}
+	\end{subfigure}
+	\begin{subfigure}{0.32\textwidth}
+		\includegraphics[width=\linewidth]{figures/MTTL_Det_3cls__ROI_NoSampler_Metrics_Detection.png}
+		\caption{Detection}
+	\end{subfigure}
+	\begin{subfigure}{0.32\textwidth}
+		\includegraphics[width=\linewidth]{figures/MTTL_Det_3cls__ROI_NoSampler_Metrics_Roi_classif.png}
+		\caption{Segmentation}
+	\end{subfigure}
+	
+	\caption{Best 3-Class Detection MTTL model (+RoI, F1=0.7710).}
+	\label{fig:mttl_dynamics_3cls}
+\end{figure*}
+
+
+\section{Final Model Evaluation and Robustness Analysis}
+\label{sec:final_evaluation}
+Following the baseline evaluation, we now focus on clinical robustness using the specialized subsets defined in \autoref{ssec:diagnostic_datasets}. We assess \textbf{sensitivity} on infected-only slides and \textbf{specificity} on healthy-only slides. Furthermore, we extend the analysis to \textbf{parasitemia quantification}, estimating infection load via the count-based method in \autoref{eq:parsitemia_formula}. These tests provide a complete view of reliability and clinical utility.
+
+\subsection{Detection Performance Leaderboard} 
+\label{ssec:sota_leaderboard}
+Table~\ref{tab:final_leaderboard} presents a leaderboard of the top performing models. Champions are selected based on the highest F1 score for the infected class, enabling a direct comparison across 1, 2, and 3-class tasks. The results illustrate a clear trend: while STL dominates the simplest setting, MTTL becomes increasingly superior as diagnostic complexity grows.
+
+\begin{table}[htbp]
+	\centering
+	\caption{Best performers by detection task complexity.}
+	\label{tab:final_leaderboard}
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabular}{p{6.5cm} l c c c c}
+		\toprule
+		\textbf{Model Configuration} & \textbf{Paradigm} & \textbf{Classes} & \textbf{mAP@50} & \textbf{F1-Macro} & \textbf{F1 (Inf.)} \\
+		\midrule
+		Det(1) & STL  & 1 & \textbf{0.8260} & \textbf{0.8182} & \textbf{0.8182} \\
+		Det(1)+Seg & MTTL & 1 & 0.7885 & 0.7654 & 0.7654 \\
+		\midrule
+		Det(2) & STL  & 2 & 0.5834 & 0.9274 & 0.5990 \\
+		Det(2)+RoI & MTTL & 2 & \textbf{0.6452} & \textbf{0.9411} & \textbf{0.7810} \\
+		\midrule
+		Det(3) & STL  & 3 & 0.3341 & 0.8977 & 0.3791 \\
+		Det(3)+RoI & MTTL & 3 & \textbf{0.7402} & \textbf{0.9409} & \textbf{0.7710} \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\subsection{Diagnostic Robustness on Specialized Subsets}
+\label{ssec:robustness_analysis}
+
+To test hypothesis H3 (Robustness), we evaluated the champion models on clinically relevant subsets. We measured F1, Recall, and Precision on infected-only slides, and counted total false positives on healthy-only slides (Table \ref{tab:spec_sets}).
+
+\begin{table}[htbp]
+	\centering
+	\caption{Performance of best detection models on specialized test subsets.}
+	\label{tab:spec_sets}
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabularx}{\textwidth}{lYYYYYYY}
+		\toprule
+		\textbf{Model} & \textbf{Paradigm} & \textbf{Classes} & \textbf{F1(Inf)} & \textbf{R(Inf)} & \textbf{P(Inf)} & \textbf{$\sum$\acp{FP}(H)} \\
+		\midrule
+		Det(1) & STL & 1 & 0.7725 & \textbf{0.8491} & 0.7086 & 12 \\
+		Det(2) & STL & 2 & 0.6021 & 0.4631 & 0.8603 & 8 \\
+		Det(3) & STL & 3 & 0.2376 & 0.1385 & 0.8333 & 6 \\
+		Det(1)+Seg & MTTL & 1 & 0.7250 & 0.8193 & 0.6503 & 27 \\
+		Det(2)+RoI & MTTL & 2 & \textbf{0.7907} & 0.7401 & 0.8487 & 10 \\
+		Det(3)+RoI & MTTL & 3 & 0.7359 & 0.6214 & \textbf{0.9023} & \textbf{3} \\
+		\bottomrule
+	\end{tabularx}
+\end{table}
+
+\noindent Consistent with previous findings, STL excels in the 1-class setting with high sensitivity ($F1=0.7725$, Recall=0.8491). However, performance degrades sharply with complexity; 3-class STL drops to an F1 of $0.2376$ and Recall of $0.1385$. In contrast, MTTL models sustain performance. The 3-class MTTL model achieves an F1 of $0.7359$ and Recall of $0.6214$, while generating only 3 false positives on healthy slides. This confirms that MTTL offers a superior balance of sensitivity and specificity for complex diagnostics.
+
+\subsection{Parasitemia Quantification on Multi-Class Detection Models}
+\label{ssec:parasitemia_quantification}
+
+A key measure of diagnostic utility is accurate slide-level parasitemia estimation on the \textbf{full test set}. We therefore evaluated the champion 2-Class and 3-Class models from \autoref{ssec:sota_leaderboard}, deriving parasitemia using the count-based formulation in \autoref{eq:parsitemia_formula}. The results are summarized below.
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth,keepaspectratio]{figures/STL_Det_2cls_Hybrid_WithSampler_correlation.png}
+		\caption{STL(2) Corr.}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth,keepaspectratio]{figures/MTTL_Det_2cls__ROI_NoSampler_correlation.png}
+		\caption{MTTL(2) Corr.}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth,keepaspectratio]{figures/STL_Det_2cls_Hybrid_WithSampler_residuals.png}
+		\caption{STL(2) Resid.}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth,keepaspectratio]{figures/MTTL_Det_2cls__ROI_NoSampler_residuals.png}
+		\caption{MTTL(2) Resid.}
+	\end{subfigure}
+	
+	\vspace{2mm}
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth,keepaspectratio]{figures/STL_Det_3cls_Hybrid_WithSampler_correlation.png}
+		\caption{STL(3) Corr.}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth,keepaspectratio]{figures/MTTL_Det_3cls__Seg_NoSampler_correlation.png}
+		\caption{MTTL(3) Corr.}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth,keepaspectratio]{figures/STL_Det_3cls_Hybrid_WithSampler_residuals.png}
+		\caption{STL(3) Resid.}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.23\textwidth}
+		\includegraphics[width=\textwidth,keepaspectratio]{figures/MTTL_Det_3cls__Seg_NoSampler_residuals.png}
+		\caption{MTTL(3) Resid.}
+	\end{subfigure}
+	
+	\caption{Parasitemia estimation for all best multi-class detection models.}
+	\label{fig:parasitemia_plots_all}
+\end{figure}
+
+\begin{table}[htbp]
+	\centering
+	\caption{Parasitemia estimation performance of the champion models on the full test set.}
+	\label{tab:parasitemia_results}
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabular}{p{6.5cm} l c c}
+		\toprule
+		\textbf{Model Configuration} & \textbf{Paradigm} & \textbf{MAE (\%)} & \textbf{Pearson Correlation (r)} \\
+		\midrule
+		Det(1) & STL  & -- & -- \\
+		Det(1)+Seg & MTTL & -- & -- \\
+		\midrule
+		Det(2) & STL  & 2.2628 & 0.9048 \\
+		Det(2)+RoI & MTTL & \textbf{0.9211} & \textbf{0.9824} \\
+		\midrule
+		Det(3) & STL  & 3.2963 & 0.8145 \\
+		Det(3)+RoI & MTTL & \textbf{1.0805} & \textbf{0.9739} \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\noindent The quantitative results in \autoref{tab:parasitemia_results} show clear clinical benefits for MTTL. In the 2-class setting, MTTL reduces MAE to $0.92\%$ from STL's $2.26\%$ (a $59\%$ reduction). In the 3-class setting, it lowers MAE to $1.08\%$ from $3.30\%$ (a $67\%$ reduction) and improves correlation to $0.97$. These figures confirm that multi-task learning significantly improves both detection robustness and the precision of infection load quantification.\\
+
+\noindent Visual analysis (\autoref{fig:parasitemia_plots_all}) supports this, with MTTL predictions aligning closely to ground-truth values. Residual plots show smaller, less biased errors compared to STL. This combination of accuracy and stability points to the framework's reliability for clinical use.
+
+\section{Benchmarking Against State-Of-The-Art}
+\label{sec:benchmarking_sota}
+
+To the best of our knowledge at the moment this work is written, direct comparison with prior malaria detection studies is challenging due to differences in staining protocols, parasite species, and diagnostic objectives. We therefore selected YOLOv8 \parencite{jocher2023yolo}, a widely adopted single-stage detector, as our baseline. YOLO variants have been successfully applied to malaria detection: \textcite{Abdurahman2021ModifiedYOLO} used a modified YOLOv4 on thick-smear images, while \textcite{sukumarran_automated_2023} extended it to thin smears with multiple \textit{Plasmodium} species.
+
+\subsection{Experimental Setup}
+\label{subsec:sota_setup}
+
+We trained YOLOv8-Nano and YOLOv8-Small to represent distinct computational constraints. To ensure a fair comparison, we strictly maintained the experimental conditions used for the MTTL framework:
+\begin{itemize}
+	\item \textbf{Data Consistency:} The patient-stratified train, validation, and test splits used for MTTL were converted to YOLO format, guaranteeing evaluation on identical unseen data.
+	\item \textbf{Training Protocol:} Models were trained for 100 epochs with early stopping at 15 epochs, using the SGD optimizer and mosaic augmentation at $512 \times 512$ resolution.
+	\item \textbf{Evaluation Logic:} Raw predictions were processed through our evaluation pipeline \autoref{sec:experimental_protocol}, ensuring mAP and F1-scores are calculated identically across all models.
+\end{itemize}
+
+\subsection{Architecture and Training Dynamics}
+\label{ssec:architecture_training}
+
+Table~\ref{tab:arch_comparison} contrasts the architectures. Our model utilizes a ResNet-50 backbone with LoRA adapters, whereas YOLOv8 employs CSPDarknet \parencite{wang2020cspnet}, optimized for single-stage detection. Despite a higher total parameter count, our approach selectively fine-tunes only $18.12\text{M}$ parameters via LoRA.
+
+\begin{table}[htbp]
+	\centering
+	\caption{Architecture comparison: YOLOv8 baselines vs. MTTL detector.}
+	\label{tab:arch_comparison}
+	\begin{tabular}{l c c c}
+		\toprule
+		\textbf{Model} & \textbf{Backbone} & \textbf{Total Params} & \textbf{Trainable Params} \\
+		\midrule
+		YOLOv8-n & CSPDarknet & ~$3.0\text{M}$ & ~$3.0\text{M}$ \\
+		YOLOv8-s & CSPDarknet & ~$12.7\text{M}$ & ~$12.7\text{M}$ \\
+		\textbf{MTTL (Ours)} & \textbf{ResNet-50 + LoRA} & \textbf{26.66M} & \textbf{18.12M} \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\noindent Figure~\ref{fig:yolo_convergence} illustrates training convergence. Both YOLOv8 variants converge smoothly, with the Small model achieving lower validation loss. However, these aggregate curves mask the model's struggle with the minority infected class, which only becomes apparent in the detailed per-class metrics discussed below.
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[b]{1\textwidth} 
+		\centering
+		\includegraphics[width=\linewidth, keepaspectratio]{figures/yolov8n_results.png}
+		\caption{YOLOv8-Nano}
+		\label{fig:yolov8n_results}
+	\end{subfigure}
+	
+	\vspace{0.5cm} 
+
+	\begin{subfigure}[b]{1\textwidth}
+		\centering
+		\includegraphics[width=\linewidth, keepaspectratio]{figures/yolov8s_results.png}
+		\caption{YOLOv8-Small}
+		\label{fig:yolov8s_results}
+	\end{subfigure}
+	
+	\caption{Training convergence for YOLOv8 variants.}
+	\label{fig:yolo_convergence}
+\end{figure}
+
+\subsection{Detection Performance}
+\label{ssec:detection_performance}
+
+3-Class Detection performance on the full test set (\autoref{ssec:diagnostic_datasets}) is presented in Table~\ref{tab:sota_comparison}. While YOLOv8-Small reaches a solid mAP@50 of $0.674$, it underperforms on the minority infected class ($\text{F1} = 0.572$), likely prioritizing the abundant healthy cells to minimize global loss. Our MTTL detector significantly outperforms it, achieving an infected class F1-score of $0.771$, a $34.8\%$ improvement.\\
+
+\begin{table}[htbp]
+	\centering
+	\caption{Detection performance on the 3-class test set. Best scores in bold.}
+	\label{tab:sota_comparison}
+	\resizebox{\textwidth}{!}{
+		\begin{tabular}{l c c c c}
+			\toprule
+			\textbf{Metric} & \textbf{YOLOv8-n} & \textbf{YOLOv8-s} & \textbf{MTTL (Ours)} & \textbf{$\Delta$ vs v8s} \\
+			\midrule
+			mAP@50 & 0.587 & 0.674 & \textbf{0.740} & +9.8\% \\
+			mAP@75 & 0.400 & 0.462 & \textbf{0.548} & +18.6\% \\
+			F1-Macro & 0.570 & 0.581 & \textbf{0.904} & +55.6\% \\
+			F1(Inf) & 0.583 & 0.572 & \textbf{0.771} & +34.8\% \\
+			Recall(Inf) & 0.573 & 0.575 & \textbf{0.715} & +24.3\% \\
+			Precision(Inf) & 0.592 & 0.569 & \textbf{0.836} & +46.8\% \\
+			\bottomrule
+		\end{tabular}
+	}
+\end{table}
+
+\noindent The improvement at the stricter mAP@75 threshold is notable: MTTL outperforms YOLOv8-Small by $18.6\%$, indicating tighter, more accurate bounding boxes. The macro-averaged F1-score also shows a substantial $55.6\%$ gain, reflecting balanced performance across all three classes rather than dominance by the majority class.
+
+\subsection{Parasitemia Estimation}
+\label{ssec:clinical_impact}
+
+Superior detection translates directly to parasitemia estimation accuracy (Table~\ref{tab:parasitemia_sota}). MTTL achieves an MAE of just $1.08\%$, compared to $3.78\%$ for YOLOv8-Small, a $71.4\%$ error reduction. The Pearson correlation with ground truth jumps from $0.548$ to $0.953$, indicating near-linear agreement between predicted and actual values.
+
+\begin{table}[htbp]
+	\centering
+	\caption{Parasitemia estimation accuracy across models.}
+	\label{tab:parasitemia_sota}
+	\begin{tabular}{l c c c}
+		\toprule
+		\textbf{Metric} & \textbf{YOLOv8-n} & \textbf{YOLOv8-s} & \textbf{MTTL (Ours)} \\
+		\midrule
+		MAE (\%) & 2.48 & 3.78 & \textbf{1.08} \\
+		Pearson $r$ & 0.883 & 0.548 & \textbf{0.953} \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\noindent Clinically, this accuracy difference is vital. Since the WHO classifies malaria severity based on parasitemia thresholds, a $3.78\%$ error could lead to misclassification, whereas our $1.08\%$ error remains within acceptable diagnostic bounds. This reliability stems from the multi-task architecture: auxiliary segmentation and RoI classification tasks regularize learning, forcing the feature extractor to capture structural parasite representations that single-task detection objectives miss.\\
+
+\noindent We conclude that, for minority class detection in imbalanced medical datasets, multi-task learning offers distinct advantages over highly optimized single-task detectors. While YOLOv8 is faster and more parameter-efficient, the diagnostic reliability gained from MTTL justifies the additional computational cost for clinical applications where accuracy on rare but critical classes is crucial.

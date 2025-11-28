@@ -1,0 +1,45 @@
+\acswitchoff 
+\babel@toc {english}{}\relax 
+\contentsline {figure}{\numberline {1}{\ignorespaces Common methods for malaria diagnosis.}}{2}{figure.caption.10}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {1.1}{\ignorespaces Hierarchical feature learning in a deep network.}}{6}{figure.caption.11}%
+\contentsline {figure}{\numberline {1.2}{\ignorespaces Some notable \ac {CNN} architectures.}}{7}{figure.caption.12}%
+\contentsline {figure}{\numberline {1.3}{\ignorespaces Basic building blocks of a \ac {CNN}}}{7}{figure.caption.13}%
+\contentsline {figure}{\numberline {1.4}{\ignorespaces Principle of the convolution operation.}}{8}{figure.caption.14}%
+\contentsline {figure}{\numberline {1.5}{\ignorespaces Max pooling with 2x2 windows and stride s=2 from input to output.}}{8}{figure.caption.15}%
+\contentsline {figure}{\numberline {1.6}{\ignorespaces Conceptual overview of three common fine-tuning strategies.}}{13}{figure.caption.16}%
+\contentsline {figure}{\numberline {1.7}{\ignorespaces Main architectural approaches for MTL.}}{15}{figure.caption.17}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Original Samples from NLM Thin Falciparum dataset.}}{28}{figure.caption.34}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Preprocessed version of the images from Figure~\ref {fig:dataset_samples}.}}{28}{figure.caption.35}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Visualization of Ground Truth Data for the Multi-Task Framework.}}{30}{figure.caption.36}%
+\contentsline {figure}{\numberline {3.4}{\ignorespaces High-level diagram of our MTTL model architecture. }}{31}{figure.caption.37}%
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Architectural details of the shared backbone, illustrating (a) the core LoRA module, (b) its integration into a standard ResNet block, and (c) the overall adapted backbone structure.}}{33}{figure.caption.38}%
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Custom Faster R-CNN Detection Head Architecture.}}{34}{figure.caption.39}%
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Segmentation Head Architecture.}}{34}{figure.caption.40}%
+\contentsline {figure}{\numberline {3.8}{\ignorespaces Infection Localization Head Architecture.}}{35}{figure.caption.41}%
+\contentsline {figure}{\numberline {3.9}{\ignorespaces MLP Classification Head Architecture.}}{35}{figure.caption.42}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Training dynamics for 1-Class and 2-Class optimal STL detection models.}}{42}{figure.caption.60}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Training dynamics for 3-Class detection and 2-Class RoI classification models.}}{42}{figure.caption.61}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Training dynamics for 3-Class RoI classification and Segmentation models.}}{42}{figure.caption.62}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Training dynamics for the Heatmap Localization model.}}{42}{figure.caption.63}%
+\contentsline {figure}{\numberline {4.5}{\ignorespaces STL detector performance degrades with complexity.}}{43}{figure.caption.64}%
+\contentsline {figure}{\numberline {4.6}{\ignorespaces Best 1-Class Detection MTTL model (+Seg, F1=0.7654).}}{46}{figure.caption.68}%
+\contentsline {figure}{\numberline {4.7}{\ignorespaces Best 2-Class Detection MTTL model (+RoI, F1=0.7810).}}{46}{figure.caption.69}%
+\contentsline {figure}{\numberline {4.8}{\ignorespaces Best 3-Class Detection MTTL model (+RoI, F1=0.7710).}}{46}{figure.caption.70}%
+\contentsline {figure}{\numberline {4.9}{\ignorespaces Parasitemia estimation for all best multi-class detection models.}}{48}{figure.caption.73}%
+\contentsline {figure}{\numberline {4.10}{\ignorespaces Training convergence for YOLOv8 variants.}}{50}{figure.caption.76}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {C.1}{\ignorespaces Qualitative comparison for Cell Segmentation.}}{71}{figure.caption.89}%
+\contentsline {figure}{\numberline {C.2}{\ignorespaces Qualitative comparison for Heatmap Localization.}}{72}{figure.caption.90}%
+\contentsline {figure}{\numberline {C.3}{\ignorespaces Qualitative comparison for Heatmap Localization.}}{72}{figure.caption.91}%
+\contentsline {figure}{\numberline {C.4}{\ignorespaces Qualitative comparison for 3-Class RoI Classification.}}{73}{figure.caption.92}%
+\contentsline {figure}{\numberline {C.5}{\ignorespaces Qualitative comparison for 1-Class Detection.}}{74}{figure.caption.93}%
+\contentsline {figure}{\numberline {C.6}{\ignorespaces Qualitative comparison for 2-Class Detection.}}{75}{figure.caption.94}%
+\contentsline {figure}{\numberline {C.7}{\ignorespaces Qualitative comparison for 3-Class Detection.}}{76}{figure.caption.95}%

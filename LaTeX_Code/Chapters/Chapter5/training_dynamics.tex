@@ -1,0 +1,54 @@
+\subsection{Training Dynamics of STL Models}
+The stability and convergence of the baseline models are visualized in Figure~\ref{fig:stl_training_dynamics}. Each subplot displays the training loss, validation loss, and primary validation metric over the course of training, confirming that each specialist model was trained to convergence without significant overfitting.
+
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}[b]{0.48\textwidth}
+		\centering
+		% \includegraphics[width=\textwidth]{figures/det_1_class_curves.png}
+		\caption{Detection (1-Class)}
+		\label{fig:dyn_det1}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.48\textwidth}
+		\centering
+		% \includegraphics[width=\textwidth]{figures/det_3_class_curves.png}
+		\caption{Detection (3-Class)}
+		\label{fig:dyn_det3}
+	\end{subfigure}
+	
+	\vspace{5mm} % Space between rows
+	
+	\begin{subfigure}[b]{0.48\textwidth}
+		\centering
+		% \includegraphics[width=\textwidth]{figures/segmentation_curves.png}
+		\caption{Segmentation}
+		\label{fig:dyn_seg}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.48\textwidth}
+		\centering
+		% \includegraphics[width=\textwidth]{figures/heatmap_curves.png}
+		\caption{Heatmap Localization}
+		\label{fig:dyn_heat}
+	\end{subfigure}
+	
+	\vspace{5mm} % Space between rows
+	
+	\begin{subfigure}[b]{0.48\textwidth}
+		\centering
+		% \includegraphics[width=\textwidth]{figures/roi_2_class_curves.png}
+		\caption{RoI Classification (2-Class)}
+		\label{fig:dyn_roi2}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.48\textwidth}
+		\centering
+		% \includegraphics[width=\textwidth]{figures/roi_3_class_curves.png}
+		\caption{RoI Classification (3-Class)}
+		\label{fig:dyn_roi3}
+	\end{subfigure}
+	
+	\caption{Training dynamics for the optimal STL baseline models. Each subplot shows the training loss, validation loss, and primary validation metric (e.g., mAP@50 or Dice Score) across epochs, demonstrating stable convergence for each specialist model.}
+	\label{fig:stl_training_dynamics}
+\end{figure}
