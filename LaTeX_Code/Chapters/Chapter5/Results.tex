@@ -570,14 +570,14 @@ A key measure of diagnostic utility is accurate slide-level parasitemia estimati
 \section{Benchmarking Against State-Of-The-Art}
 \label{sec:benchmarking_sota}
 
-To the best of our knowledge at the moment this work is written, direct comparison with prior malaria detection studies is challenging due to differences in staining protocols, parasite species, and diagnostic objectives. We therefore selected YOLOv8 \parencite{jocher2023yolo}, a widely adopted single-stage detector, as our baseline. YOLO variants have been successfully applied to malaria detection: \textcite{Abdurahman2021ModifiedYOLO} used a modified YOLOv4 on thick-smear images, while \textcite{sukumarran_automated_2023} extended it to thin smears with multiple \textit{Plasmodium} species.
+To the best of our knowledge at the moment this work is written, direct comparison with prior malaria detection studies is challenging due to differences in staining protocols, parasite species, and diagnostic objectives. We therefore selected YOLOv8 \parencite{jocher2023yolo}, a widely adopted single-stage detector, as our baseline. YOLO variants have been successfully applied to malaria detection, for example \textcite{Abdurahman2021ModifiedYOLO} used a modified YOLOv4 on thick-smear images, while \textcite{sukumarran_automated_2023} extended it to thin smears with multiple \textit{Plasmodium} species.
 
 \subsection{Experimental Setup}
 \label{subsec:sota_setup}
 
 We trained YOLOv8-Nano and YOLOv8-Small to represent distinct computational constraints. To ensure a fair comparison, we strictly maintained the experimental conditions used for the MTTL framework:
 \begin{itemize}
-	\item \textbf{Data Consistency:} The patient-stratified train, validation, and test splits used for MTTL were converted to YOLO format, guaranteeing evaluation on identical unseen data.
+	\item \textbf{Data Consistency:} The pre-processed patient-stratified train, validation, and test splits used for MTTL were converted to YOLO format, guaranteeing evaluation on identical unseen data.
 	\item \textbf{Training Protocol:} Models were trained for 100 epochs with early stopping at 15 epochs, using the SGD optimizer and mosaic augmentation at $512 \times 512$ resolution.
 	\item \textbf{Evaluation Logic:} Raw predictions were processed through our evaluation pipeline \autoref{sec:experimental_protocol}, ensuring mAP and F1-scores are calculated identically across all models.
 \end{itemize}
@@ -629,29 +629,29 @@ Table~\ref{tab:arch_comparison} contrasts the architectures. Our model utilizes 
 \subsection{Detection Performance}
 \label{ssec:detection_performance}
 
-3-Class Detection performance on the full test set (\autoref{ssec:diagnostic_datasets}) is presented in Table~\ref{tab:sota_comparison}. While YOLOv8-Small reaches a solid mAP@50 of $0.674$, it underperforms on the minority infected class ($\text{F1} = 0.572$), likely prioritizing the abundant healthy cells to minimize global loss. Our MTTL detector significantly outperforms it, achieving an infected class F1-score of $0.771$, a $34.8\%$ improvement.\\
+3-Class Detection performance on the full test set (\autoref{ssec:diagnostic_datasets}) is presented in Table~\ref{tab:sota_comparison}. While YOLOv8-Small reaches a solid mAP@50 of $0.674$, it underperforms on the minority infected class ($\text{F1} = 0.572$), likely prioritizing the abundant healthy cells to minimize global loss. Our MTTL detector significantly outperforms it, achieving an infected class F1-score of $0.771$, a $34.8\%$ improvement. The macro-averaged F1-score also shows a substantial $62.0\%$ gain, reflecting balanced performance across all three classes rather than dominance by the majority class.
 
 \begin{table}[htbp]
 	\centering
 	\caption{Detection performance on the 3-class test set. Best scores in bold.}
 	\label{tab:sota_comparison}
-	\resizebox{\textwidth}{!}{
 		\begin{tabular}{l c c c c}
 			\toprule
 			\textbf{Metric} & \textbf{YOLOv8-n} & \textbf{YOLOv8-s} & \textbf{MTTL (Ours)} & \textbf{$\Delta$ vs v8s} \\
 			\midrule
 			mAP@50 & 0.587 & 0.674 & \textbf{0.740} & +9.8\% \\
 			mAP@75 & 0.400 & 0.462 & \textbf{0.548} & +18.6\% \\
-			F1-Macro & 0.570 & 0.581 & \textbf{0.904} & +55.6\% \\
-			F1(Inf) & 0.583 & 0.572 & \textbf{0.771} & +34.8\% \\
-			Recall(Inf) & 0.573 & 0.575 & \textbf{0.715} & +24.3\% \\
-			Precision(Inf) & 0.592 & 0.569 & \textbf{0.836} & +46.8\% \\
+			\midrule
+			F1-Macro & 0.570 & 0.581 & \textbf{0.941} & +62.0\% \\
+			Recall-Macro & 0.543 & 0.784 & \textbf{0.910} & +16.1\% \\
+			Prec.-Macro & 0.652 & 0.563 & \textbf{0.974} & +73.0\% \\
+			\midrule
+			F1 (Inf) & 0.583 & 0.572 & \textbf{0.771} & +34.8\% \\
+			Recall (Inf) & 0.573 & 0.575 & \textbf{0.715} & +24.3\% \\
+			Precision (Inf) & 0.592 & 0.569 & \textbf{0.836} & +46.8\% \\
 			\bottomrule
 		\end{tabular}
-	}
 \end{table}
-
-\noindent The improvement at the stricter mAP@75 threshold is notable: MTTL outperforms YOLOv8-Small by $18.6\%$, indicating tighter, more accurate bounding boxes. The macro-averaged F1-score also shows a substantial $55.6\%$ gain, reflecting balanced performance across all three classes rather than dominance by the majority class.
 
 \subsection{Parasitemia Estimation}
 \label{ssec:clinical_impact}
@@ -665,13 +665,13 @@ Superior detection translates directly to parasitemia estimation accuracy (Table
 	\begin{tabular}{l c c c}
 		\toprule
 		\textbf{Metric} & \textbf{YOLOv8-n} & \textbf{YOLOv8-s} & \textbf{MTTL (Ours)} \\
-		\midrule
+		\midrule	
 		MAE (\%) & 2.48 & 3.78 & \textbf{1.08} \\
 		Pearson $r$ & 0.883 & 0.548 & \textbf{0.953} \\
 		\bottomrule
 	\end{tabular}
 \end{table}
 
-\noindent Clinically, this accuracy difference is vital. Since the WHO classifies malaria severity based on parasitemia thresholds, a $3.78\%$ error could lead to misclassification, whereas our $1.08\%$ error remains within acceptable diagnostic bounds. This reliability stems from the multi-task architecture: auxiliary segmentation and RoI classification tasks regularize learning, forcing the feature extractor to capture structural parasite representations that single-task detection objectives miss.\\
+\noindent Notably, the smaller YOLOv8-Nano yielded a lower estimation error ($2.48\%$) than the larger YOLOv8-Small ($3.78\%$), despite having a lower mAP. This anomaly occurs because parasitemia is a ratio, YOLOv8-Small exhibited lower precision on the abundant healthy cells, skewing the total cell count denominator and amplifying the ratio error. MTTL avoids this trade-off by maintaining balanced performance across classes.\\
 
-\noindent We conclude that, for minority class detection in imbalanced medical datasets, multi-task learning offers distinct advantages over highly optimized single-task detectors. While YOLOv8 is faster and more parameter-efficient, the diagnostic reliability gained from MTTL justifies the additional computational cost for clinical applications where accuracy on rare but critical classes is crucial.
+\noindent Clinically, this accuracy is vital as WHO treatment protocols rely on specific severity thresholds, a $3.78\%$ error risks misclassification, whereas $1.08\%$ remains within safe bounds. This reliability comes from the multi-task architecture, where auxiliary segmentation and RoI classification regularize the feature extractor to capture structural details that single-task detectors miss. We conclude that for imbalanced medical datasets, the diagnostic reliability gained from MTTL justifies the computational cost over standard object detectors.

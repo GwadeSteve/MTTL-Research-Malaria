@@ -10,8 +10,8 @@ The primary contribution of this work is the formulation and validation of a mul
 
 \begin{itemize}
 	\item \textbf{A Mathematical Framework for MTTL:} We proposed a formal mathematical definition for MTTL that explicitly handles task interactions, loss aggregation, and regularization. This provides a reproducible basis for future research and ensures that performance gains are analytically interpretable.
-	\item \textbf{System Design and Hybrid Tuning:} We designed a modular architecture that integrates detection, segmentation, and region-of-interest classification. By combining Low-Rank Adaptation (LoRA) with selective fine-tuning of deep layers, we introduced a computationally efficient strategy to adapt large pre-trained models without the cost of full retraining.
-	\item \textbf{Empirical Validation of Task Synergy:} Through rigorous experimentation, we identified which auxiliary tasks provide beneficial inductive biases. We demonstrated that RoI Classification and Segmentation significantly enhance feature learning, while also highlighting cases where negative transfer can occur, such as with heatmap localization in certain configurations.
+	\item \textbf{System Design and Hybrid Tuning:} We designed a modular architecture that integrates detection, segmentation, heatmap localization and region-of-interest classification. By combining Low-Rank Adaptation (LoRA) with selective fine-tuning of deep layers, we introduced a computationally efficient strategy to adapt large pre-trained models without the cost of full retraining.
+	\item \textbf{Empirical Validation of Task Synergy:} Through rigorous experimentation, we identified which auxiliary tasks provide beneficial inductive biases. We demonstrated that RoI Classification and Segmentation significantly improves feature learning, while also highlighting cases where negative transfer or task interference can occur, such as with heatmap localization in certain configurations.
 \end{itemize}
 
 \section*{Principal Findings}

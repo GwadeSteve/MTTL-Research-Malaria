@@ -3,7 +3,9 @@
 \contentsline {chapter}{Declaration}{i}{chapter*.1}%
 \contentsline {chapter}{Acknowledgments}{ii}{chapter*.2}%
 \contentsline {chapter}{Abstract}{iii}{chapter*.3}%
-\contentsline {chapter}{Summary}{iv}{chapter*.4}%
+\contentsline {chapter}{Résumé}{iv}{chapter*.4}%
+\babel@toc {french}{}\relax 
+\babel@toc {english}{}\relax 
 \contentsline {chapter}{List of Acronyms}{ix}{chapter*.5}%
 \contentsline {chapter}{List of Figures}{x}{chapter*.6}%
 \contentsline {chapter}{List of Tables}{xii}{chapter*.7}%

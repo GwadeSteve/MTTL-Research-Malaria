@@ -105,7 +105,7 @@ Using the WHO formula, I estimated parasitemia on the full test set by comparing
 
 ## Qualitative Visualizations
 
-The model produces four simultaneous outputs from a single input image. Here are some examples:
+The model can produce four simultaneous outputs from a single input image. Here are some examples:
 
 **1. 3-Class Detection ( With focus on Infected cells )**
 

@@ -8,7 +8,7 @@ Automated malaria diagnosis remains a major challenge for researchers. While man
 \bigskip
 
 \noindent
-Our experiments show that standard Single-Task Learning (STL) works well for simple detection but struggles as complexity increases. We observed the F1 score drop from $0.82$ in simple 1-class tests to $0.38$ in 3-class settings. Our proposed MTTL framework resolves this degradation. When compared to the industry-standard \textbf{YOLOv8-Small} detector, our model achieved a \textbf{34.7\%} higher F1-score for infected cells. It also reduced parasitemia estimation error by \textbf{71.4\%} compared to YOLO (1.08\% vs 3.78\%) and by 67\% compared to our STL baseline (3.30\%), while producing fewer false alarms and sharper localization results.
+Our experiments show that standard Single-Task Learning (STL) works well for simple detection but struggles as complexity increases. We observed the F1 score drop from $0.82$ in simple 1-class tests to $0.38$ in 3-class settings. Our proposed MTTL framework resolves this degradation. When benchmarked against the industry-standard \textbf{YOLOv8 (Nano and Small)} detectors, our model demonstrated superior sensitivity. It achieved an F1-score for infected cells \textbf{32-35\%} higher than the YOLO variants. Furthermore, it reduced parasitemia estimation error to \textbf{1.08\%}, significantly outperforming YOLOv8-Small (3.78\%), YOLOv8-Nano (2.48\%), and our STL baseline (3.30\%), while producing fewer false alarms and sharper localization results.
 
 \bigskip
 

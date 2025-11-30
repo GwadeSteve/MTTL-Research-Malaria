@@ -20,7 +20,7 @@ The comparison against YOLOv8 (Section \ref{sec:benchmarking_sota}) reveals impo
 \noindent Our MTTL framework, even with an older ResNet-50 backbone, outperformed the modern YOLO architecture because of the structure provided by the auxiliary tasks:
 \begin{itemize}
 	\item The \textbf{Segmentation} task forces the model to understand the exact pixel boundaries of the parasite, preventing it from confusing overlapping cells.
-	\item The \textbf{RoI Classification} task forces a second feature extraction step on specific cell regions, refining the decision boundary between healthy and infected cells.
+	\item The \textbf{RoI Classification} task forces a second feature extraction step on specific cell regions, refining the decision boundary between healthy cells, infected cells and WBCs.
 \end{itemize}
 \noindent This suggests that for specialized medical tasks with limited data, explicitly modeling the problem structure works better than simply using a faster, newer architecture.
 
@@ -58,5 +58,5 @@ While this research provides strong evidence for the benefits of MTTL, we must a
 	
 	\item \textbf{Optimization Constraints:} Practical limits constrained our hyperparameter tuning. While we applied a consistent protocol, each configuration would likely benefit from an exhaustive search for optimal learning rates and loss weights. Additionally, Automatic Mixed Precision required careful implementation to prevent numerical instability.
 	
-	\item \textbf{Simplified Parasitemia Estimation:} We estimated parasitemia based on cell counts from single image fields. Clinical practice typically requires counting parasites against white blood cells over many fields to ensure statistical validity. A fully validated clinical tool would need to aggregate counts across multiple fields.
+	\item \textbf{Simplified Parasitemia Estimation:} We estimated parasitemia based on cell counts from single image fields. Clinical practice typically requires counting parasites over many fields to ensure statistical validity. A fully validated clinical tool would need to aggregate counts across multiple fields.
 \end{itemize}
