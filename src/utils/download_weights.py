@@ -5,7 +5,7 @@ import shutil
 import gdown
 from pathlib import Path
 
-# config and structure
+# config and structure 
 GDRIVE_FILE_ID = '1DBx0nYCAQZqMLUMBDDSbV98fyeFnKmrc'
 
 REQUIRED_STRUCTURE = {
@@ -159,9 +159,9 @@ def download_models(force=False, interactive=True):
         
     except Exception as e:
         print(f"\nError: {e}")
-        print(f"Please download manually from: https://drive.google.com/uc?id={GDRIVE_FILE_ID}")
-        return False
+        print(f"Please download manually from: https://drive.google.com/uc?id={GDRIVE_FILE_ID}") 
+        return False 
 
 if __name__ == "__main__":
-    force_download = '--force' in sys.argv
-    download_models(force=force_download, interactive=not force_download)
+    force_download = '--force' in sys.argv 
+    download_models(force=force_download, interactive=not force_download) 
