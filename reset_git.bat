@@ -2,7 +2,7 @@
 echo ========================================
 echo Git Repository Clean Reset
 echo ========================================
-echo.
+echo. 
 
 echo Step 1: Uninstalling Git LFS...
 git lfs uninstall
