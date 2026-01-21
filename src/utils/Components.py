@@ -135,7 +135,7 @@ class AdaptedResNetBlock(nn.Module):
                 raise TypeError(f"Unknown ResNet block type: {type(original_block)}")
                 #feat_dim = next(original_block.parameters()).shape[0]
             
-            # Task-specific adapters (They learn what is specific to each task, tune the backbone features to be more useful for that task)
+            # Task-specific adapters
             self.adapters = nn.ModuleDict()
             for task in adapter_config.get('tasks', []):
                 self.adapters[task] = LoRAAdapter(
