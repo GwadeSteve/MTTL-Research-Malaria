@@ -2,7 +2,7 @@
 
 # Multi-Task Transfer Learning and Application to Malaria Diagnosis
 
-*Master of Science Thesis, November 2025*
+*Master of Science in Engineering, December 2025*
 
 </div>
 
