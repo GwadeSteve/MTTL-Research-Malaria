@@ -63,7 +63,7 @@ def load_model(model_dir):
     else:
         model = create_model_for_task(config, active_tasks[0])
     
-    model.to(DEVICE)
+    model.to(DEVICE) 
     model.load_state_dict(
         torch.load(Path(model_dir) / 'best_model.pth', map_location=DEVICE)
     )

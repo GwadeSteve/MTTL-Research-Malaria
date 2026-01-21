@@ -12,7 +12,7 @@ from DataUtils import set_seeds
 
 class FlexibleMalariaLoss(nn.Module):
     """
-    Our Loss System for Malaria Detection:
+    Our Loss System for Malaria Detection: 
     - DETECTION: RPN_cls (BCE) + RPN_reg (Smooth L1) + RoI_cls(Focal Loss) + RoI_reg (Smooth L1)
     - HEATMAP: Spatial Focal + Dice + Boundary Enhancement
     - CELL CLASSIF: Weighted CE loss
