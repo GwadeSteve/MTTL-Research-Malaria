@@ -27,7 +27,7 @@ from torchvision.ops import MultiScaleRoIAlign
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 from DataUtils import set_seeds
 
-# Check the aavailable device
+# Check the available device
 print(f"CUDA available: {torch.cuda.is_available()}")
 if torch.cuda.is_available():
     print(f"CUDA device: {torch.cuda.get_device_name(0)}")
@@ -60,7 +60,7 @@ class LoRAAdapter(nn.Module):
     
     def _initialize_weights(self):
         """Init LoRA weights following best and paper practices"""
-        # A: Kaiming uniform (like in thepaper)
+        # A: Kaiming uniform (like in the paper)
         nn.init.kaiming_uniform_(self.lora_A.weight, a=math.sqrt(5))
         # B: Zero initialization (starts as identity)
         nn.init.zeros_(self.lora_B.weight)
