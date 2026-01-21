@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+mpl.use('Agg') 
 from matplotlib.patches import FancyBboxPatch
 import matplotlib.ticker as mtick
 import textwrap
@@ -1269,4 +1270,3 @@ def generate_and_export_report(base_dir: str = "experiments", output_dir: str = 
         import traceback
         traceback.print_exc()
         return None
-
